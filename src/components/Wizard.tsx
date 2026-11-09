@@ -1,519 +1,572 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  ArrowRight, 
-  ArrowLeft, 
-  Sparkles, 
-  Phone, 
-  Mail, 
-  Plus, 
-  Trash2, 
-  Star, 
-  CreditCard, 
-  Link as LinkIcon, 
-  Loader2, 
-  ShieldCheck, 
-  CheckCircle2, 
-  Globe, 
-  Quote,
+import {
+  ArrowRight,
+  ArrowLeft,
+  Sparkles,
   Check,
-  Palette,
-  Type,
-  SunMedium,
-  ArrowDown,
-  MapPin
+  CheckCircle2,
+  X,
+  XCircle,
+  ShieldCheck,
+  Loader2,
+  Plus,
+  Trash2,
+  Bike,
+  Store,
+  ShoppingBag,
+  Flame,
+  Sun,
+  Moon,
+  Star,
+  Info
 } from 'lucide-react';
 
-import type { CorporateFormData, ServiceItem, FaqItem, StepDefinition, DomainPlanType } from '../types/wizard';
+import type { MenuFormData, DeliveryZone, DishItem, StepDefinition } from '../types/wizard';
 import ImageUpload from './ImageUpload';
-import AddressAutocomplete from './AddressAutocomplete';
-import StepWelcome, { DEFAULT_CORPORATE_DEMO_URL } from './steps/StepWelcome';
-import StepDomainPlan from './steps/StepDomainPlan';
-import StepDomainPreferences from './steps/StepDomainPreferences';
-import { DOMAIN_PLANS } from '../config/domainPlans';
-import MercadoPagoIcon from './icons/MercadoPagoIcon';
+import DishImageUpload from './DishImageUpload';
+import StepWelcome from './steps/StepWelcome';
+import FloatingWhatsAppSupport, { WhatsAppIcon } from './FloatingWhatsAppSupport';
 import { parseColorToCss } from '../utils/colorParser';
 
 import { db, FIRESTORE_COLLECTION } from '../firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
-import FloatingWhatsAppSupport, { WhatsAppIcon } from './FloatingWhatsAppSupport';
+const STORAGE_DATA_KEY = 'onboardingGastronomico_data';
+const STORAGE_STEP_KEY = 'onboardingGastronomico_step';
+const STORAGE_SUBSTEP_KEY = 'onboardingGastronomico_catalog_substep';
 
-const CLOUDINARY_BASE_FOLDER = import.meta.env.VITE_CLOUDINARY_BASE_FOLDER || 'Template Corporativo - Sin dominio';
+const CLOUDINARY_BASE_FOLDER = import.meta.env.VITE_CLOUDINARY_BASE_FOLDER || 'Menu inteligente';
 
-const InstagramIcon = ({ size = 16, className = "" }: { size?: number; className?: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
-    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
-  </svg>
-);
-
-const FacebookIcon = ({ size = 16, className = "" }: { size?: number; className?: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-  </svg>
-);
-
-const LinkedinIcon = ({ size = 18, className = "" }: { size?: number; className?: string }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
-    <rect width="4" height="12" x="2" y="9" />
-    <circle cx="4" cy="4" r="2" />
-  </svg>
-);
-
-// Componente de apoyo visible, elegante y con personalidad de agencia
-const AgencyCopyTip = ({
-  message
-}: {
-  message: string;
-}) => (
-  <div className="bg-blue-50/70 border border-blue-200/80 rounded-xl px-3.5 py-2.5 sm:px-4 sm:py-3 flex items-start gap-2.5 text-xs sm:text-[13px] text-slate-700 leading-relaxed shadow-2xs">
-    <Sparkles size={15} className="text-blue-600 shrink-0 mt-0.5" />
+// Componente de apoyo visible con personalidad de agencia
+const AgencyCopyTip = ({ message }: { message: string }) => (
+  <div className="bg-amber-50/70 border border-amber-200/80 rounded-2xl px-4 py-3 flex items-start gap-3 text-xs sm:text-[13px] text-slate-700 leading-relaxed shadow-2xs">
+    <Sparkles size={16} className="text-amber-600 shrink-0 mt-0.5" />
     <div>
-      <span className="font-bold text-slate-900 mr-1.5">Tip de redacción:</span>
+      <span className="font-bold text-slate-900 mr-1.5">Tip de nuestro equipo:</span>
       <span className="text-slate-700">{message}</span>
     </div>
   </div>
 );
 
-const generateEmptyServices = (): ServiceItem[] => [
-  { id: 'svc-1', title: '', description: '', iconHint: '' },
-  { id: 'svc-2', title: '', description: '', iconHint: '' },
-  { id: 'svc-3', title: '', description: '', iconHint: '' },
-  { id: 'svc-4', title: '', description: '', iconHint: '' },
-  { id: 'svc-5', title: '', description: '', iconHint: '' },
-  { id: 'svc-6', title: '', description: '', iconHint: '' }
-];
-
-const initialData: CorporateFormData = {
+const initialData: MenuFormData = {
+  // PASO 1
   mercadoLibreUser: '',
-  templateSelected: 'T3',
 
-  // 1. Identidad Corporativa
-  companyName: '',
-  slogan: '',
+  // PASO 2
+  restaurantName: '',
+
+  // PASO 3
   logoUrl: '',
   noLogo: false,
-  primaryColor: '',
-  secondaryColor: '',
-  typography: '',
-  customTypography: '',
-  backgroundTone: '',
-  heroTitle: '',
-  heroImage: '',
-  wantsMobileHero: false,
-  heroImageMobile: '',
 
-  // 2. Sobre la Empresa
-  aboutText: '',
-  aboutImage: '',
-  strengths: '',
-  stats: [],
+  // PASO 4
+  primaryColor: '#DC2626',
+  themeTone: 'dark',
 
-  // 3. Servicios & FAQs
-  services: generateEmptyServices(),
-  faqs: [
-    { question: '', answer: '' },
-    { question: '', answer: '' }
+  // PASO 5: Modelo de Negocio y Suscripción
+  managementPlan: 'vip',
+  billingCycle: 'anual',
+
+  // PASO 6: Creador de Catálogo
+  categoriesList: ['Hamburguesas', 'Bebidas'],
+  dishesList: [
+    {
+      id: 'dish-sample-1',
+      categoryName: 'Hamburguesas',
+      name: 'Smash Doble Cheddar',
+      price: '$8.500',
+      description: 'Doble medallón 120g, queso cheddar fundido y pan de papa.',
+      imageUrl: ''
+    },
+    {
+      id: 'dish-sample-2',
+      categoryName: 'Hamburguesas',
+      name: 'Smash Bacon Crispy',
+      price: '$9.200',
+      description: 'Doble carne, cheddar americano, panceta crocante y salsa barbacoa.',
+      imageUrl: ''
+    },
+    {
+      id: 'dish-sample-3',
+      categoryName: 'Bebidas',
+      name: 'Gaseosa 500ml',
+      price: '$2.000',
+      description: 'Línea Coca Cola o agua con gas',
+      imageUrl: ''
+    }
+  ],
+  featuredDishIds: ['dish-sample-1', 'dish-sample-2'],
+
+  // PASO 7: Logística y Envíos
+  whatsappNumber: '+54 9 ',
+  deliveryMethods: {
+    delivery: true,
+    takeaway: true
+  },
+  deliveryZones: [
+    { id: 'zone-1', name: 'Palermo / Ramos Mejía Centro', cost: '$1.500' },
+    { id: 'zone-2', name: 'San Isidro / Zonas Aledañas', cost: '$2.500' }
   ],
 
-  // 4. Testimonios
-  useGoogleMapsReviews: false,
-  googleMapsLink: '',
-  reviewsList: [
-    { name: '', company: '', text: '' },
-    { name: '', company: '', text: '' },
-    { name: '', company: '', text: '' }
-  ],
+  // PASO 8: Medios de Cobro (Checkout)
+  paymentCbuAlias: '',
+  paymentAccountHolder: '',
+  paymentBank: '',
+  acceptsCash: true,
 
-  // 5. Contacto
-  whatsapp: '',
-  corporateEmail: '',
-  linkedin: '',
-  instagram: '',
-  facebook: '',
-  address: '',
-
-  // 6. Dominio y Dirección Web (Plan y 3 opciones)
-  domainPlan: 'com_ar',
-  domainOption1: '',
-  domainOption2: '',
-  domainOption3: '',
-
-  // 7. Términos
+  // PASO 9: Revisión y Puesta en Marcha
   acceptedTerms: false
 };
 
 const STEPS: StepDefinition[] = [
-  { id: 'WELCOME', title: 'Bienvenida & Demo', category: 'Inicio' },
-  { id: 'ACCOUNT_SYNC', title: 'Identificador de Compra', category: 'Identidad' },
-  { id: 'COMPANY_NAME', title: 'Nombre & Eslogan', category: 'Identidad' },
-  { id: 'BRAND_LOGO', title: 'Logotipo Oficial', category: 'Identidad' },
-  { id: 'BRAND_STYLE', title: 'Estilo Visual', category: 'Identidad' },
-  { id: 'HERO_SECTION', title: 'Portada Principal', category: 'Identidad' },
-  { id: 'ABOUT_COMPANY', title: 'Quiénes Somos', category: 'Empresa' },
-  { id: 'VALUE_PROPOSITION', title: 'Por Qué Elegirnos', category: 'Empresa' },
-  { id: 'SERVICES_PORTFOLIO', title: 'Cartera de Servicios', category: 'Soluciones' },
-  { id: 'FAQS_SECTION', title: 'Preguntas Frecuentes', category: 'Soluciones' },
-  { id: 'CLIENTS_TESTIMONIALS', title: 'Testimonios & Clientes', category: 'Testimonios' },
-  { id: 'CONTACT_CHANNELS', title: 'Canales de Contacto', category: 'Contacto' },
-  { id: 'DOMAIN_PLAN', title: 'Tipo de Dominio', category: 'Dominio' },
-  { id: 'DOMAIN_PREFERENCES', title: 'Opciones de Dominio', category: 'Dominio' },
-  { id: 'FINAL_REVIEW', title: 'Confirmación & Envío', category: 'Finalizar' }
+  { id: 'WELCOME', stepNumber: 0, title: 'Bienvenida', shortTitle: 'Inicio', category: 'Bienvenida' },
+  { id: 'PURCHASE_VALIDATION', stepNumber: 1, title: 'Validación de Compra', shortTitle: 'Validación', category: 'Identidad' },
+  { id: 'RESTAURANT_IDENTITY', stepNumber: 2, title: 'Identidad del Local', shortTitle: 'Nombre', category: 'Identidad' },
+  { id: 'LOGO_UPLOAD', stepNumber: 3, title: 'Carga de Logotipo', shortTitle: 'Logotipo', category: 'Identidad' },
+  { id: 'VISUAL_STYLE', stepNumber: 4, title: 'Estilo Visual', shortTitle: 'Estilo', category: 'Diseño' },
+  { id: 'MANAGEMENT_PLAN', stepNumber: 5, title: 'Modelo de Negocio & Suscripción', shortTitle: 'Plan', category: 'Gestión' },
+  { id: 'CATALOG_SETUP', stepNumber: 6, title: 'Estructura de tu Menú y Precios', shortTitle: 'Catálogo', category: 'Menú' },
+  { id: 'LOGISTICS_WHATSAPP', stepNumber: 7, title: 'Recepción de Pedidos y Envíos', shortTitle: 'Logística', category: 'Operativa' },
+  { id: 'PAYMENT_METHODS', stepNumber: 8, title: 'Medios de Cobro (Checkout)', shortTitle: 'Cobros', category: 'Finanzas' },
+  { id: 'CLOSING_TERMS', stepNumber: 9, title: 'Revisión y Puesta en Marcha', shortTitle: 'Cierre', category: 'Finalizar' }
 ];
 
 export default function Wizard() {
-  const [data, setData] = useState<CorporateFormData>(initialData);
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  // PERSISTENCIA EN LOCALSTORAGE (CRÍTICO)
+  const [data, setData] = useState<MenuFormData>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_DATA_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return { ...initialData, ...parsed };
+      }
+    } catch (e) {
+      console.error('Error recuperando datos de localStorage:', e);
+    }
+    return initialData;
+  });
+
+  const [currentStepIndex, setCurrentStepIndex] = useState<number>(() => {
+    try {
+      const savedStep = localStorage.getItem(STORAGE_STEP_KEY);
+      const savedData = localStorage.getItem(STORAGE_DATA_KEY);
+      const parsedData = savedData ? JSON.parse(savedData) : null;
+      // Si no hay datos cargados, arrancar en Bienvenida (0)
+      if (!parsedData?.mercadoLibreUser && !parsedData?.restaurantName) {
+        return 0;
+      }
+      if (savedStep !== null) {
+        const stepNum = parseInt(savedStep, 10);
+        if (!isNaN(stepNum) && stepNum >= 0 && stepNum < STEPS.length) {
+          return stepNum;
+        }
+      }
+    } catch (e) {
+      console.error('Error recuperando paso de localStorage:', e);
+    }
+    return 0;
+  });
+
+  // Sub-vista de Catálogo (0: Categorías, 1: Carga de Platos, 2: Destacados)
+  const [catalogSubStep, setCatalogSubStep] = useState<0 | 1 | 2>(() => {
+    try {
+      const savedSub = localStorage.getItem(STORAGE_SUBSTEP_KEY);
+      if (savedSub !== null) {
+        const sub = parseInt(savedSub, 10);
+        if (sub === 0 || sub === 1 || sub === 2) return sub;
+      }
+    } catch (e) {
+      console.error('Error recuperando subpaso de catálogo:', e);
+    }
+    return 0;
+  });
+
+  // Tasa de cambio del Dólar Oficial del día de hoy
+  const [dolarOficial, setDolarOficial] = useState<number>(1085);
+  const [dolarFecha, setDolarFecha] = useState<string>('');
+
+  useEffect(() => {
+    const fetchDolar = async () => {
+      try {
+        const res = await fetch('https://dolarapi.com/v1/dolares/oficial');
+        if (res.ok) {
+          const json = await res.json();
+          if (json.venta) {
+            setDolarOficial(Math.round(json.venta));
+            if (json.fechaActualizacion) {
+              setDolarFecha(new Date(json.fechaActualizacion).toLocaleDateString('es-AR'));
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Usando cotización de referencia oficial:', err);
+      }
+    };
+    fetchDolar();
+  }, []);
+
+  const [newCategoryInput, setNewCategoryInput] = useState('');
   const [direction, setDirection] = useState<1 | -1>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedProject, setSubmittedProject] = useState<{
     id: string;
-    companyName: string;
-    isPaid?: boolean;
-    planName?: string;
-    priceFormatted?: string;
-    redirectUrl?: string;
+    restaurantName: string;
+    managementPlan: string;
+    billingCycle?: string;
   } | null>(null);
 
-  // Helper para generar el nombre de carpeta del cliente en Cloudinary
-  const getClientFolderName = () => {
-    const company = (data.companyName ?? '').trim();
-    const user = (data.mercadoLibreUser ?? '').trim();
-    if (company && user) return `${company}_(${user})`;
-    if (company) return company;
-    if (user) return user;
-    return 'cliente_general';
-  };
-
-  // Sub-paso para que la pantalla interactiva se quede fija arriba y abajo cambien: 0 = Colores, 1 = Tipografía, 2 = Tono
-  const [brandSubStep, setBrandSubStep] = useState<0 | 1 | 2>(0);
-
-  // Estado para el indicador animado flotante "Continúa abajo"
-  const [showScrollPrompt, setShowScrollPrompt] = useState(false);
+  // Sincronización continua de localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_DATA_KEY, JSON.stringify(data));
+    } catch (e) {
+      console.error('Error guardando datos en localStorage:', e);
+    }
+  }, [data]);
 
   useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_STEP_KEY, currentStepIndex.toString());
+    } catch (e) {
+      console.error('Error guardando paso en localStorage:', e);
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [currentStepIndex, brandSubStep]);
+  }, [currentStepIndex]);
 
   useEffect(() => {
-    const checkScroll = () => {
-      const scrollHeight = document.documentElement.scrollHeight;
-      const clientHeight = window.innerHeight;
-      const scrollY = window.scrollY;
-      const scrollRemaining = scrollHeight - (scrollY + clientHeight);
-
-      // Solo mostrar si realmente hay más de 240px de contenido oculto debajo y estamos en la parte superior
-      const hasSignificantContentBelow = scrollRemaining > 240;
-      const isNearTop = scrollY < 50;
-
-      setShowScrollPrompt(hasSignificantContentBelow && isNearTop);
-    };
-
-    const timer = setTimeout(checkScroll, 200);
-    window.addEventListener('scroll', checkScroll, { passive: true });
-    window.addEventListener('resize', checkScroll);
-
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('scroll', checkScroll);
-      window.removeEventListener('resize', checkScroll);
-    };
-  }, [currentStepIndex, brandSubStep, data.services.length]);
+    try {
+      localStorage.setItem(STORAGE_SUBSTEP_KEY, catalogSubStep.toString());
+    } catch (e) {
+      console.error('Error guardando subpaso en localStorage:', e);
+    }
+  }, [catalogSubStep]);
 
   const currentStep = STEPS[currentStepIndex];
 
+  const getClientFolderName = () => {
+    const restaurant = (data.restaurantName ?? '').trim();
+    const user = (data.mercadoLibreUser ?? '').trim();
+    if (restaurant && user) return `${restaurant}_(${user})`;
+    if (restaurant) return restaurant;
+    if (user) return user;
+    return 'local_gastronomico';
+  };
+
+  const handleInputChange = <K extends keyof MenuFormData>(field: K, value: MenuFormData[K]) => {
+    setData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  // NAVEGACIÓN INTELIGENTE (INCLUYE SUB-PASOS DE CATÁLOGO)
   const nextStep = () => {
-    // Si estamos en la pantalla interactiva de estilo de marca, avanzamos primero sus sub-pasos
-    if (currentStep.id === 'BRAND_STYLE' && brandSubStep < 2) {
-      setBrandSubStep((prev) => (prev + 1) as 0 | 1 | 2);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
+    if (currentStep.id === 'CATALOG_SETUP') {
+      if (catalogSubStep === 0) {
+        setCatalogSubStep(1);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      if (catalogSubStep === 1) {
+        setCatalogSubStep(2);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
     }
 
     if (currentStepIndex < STEPS.length - 1) {
       setDirection(1);
       setCurrentStepIndex((prev) => prev + 1);
-      // Al entrar a BRAND_STYLE desde BRAND_LOGO, comenzamos en subpaso 0 (Colores)
-      if (STEPS[currentStepIndex + 1]?.id === 'BRAND_STYLE') {
-        setBrandSubStep(0);
-      }
     }
   };
 
   const prevStep = () => {
-    // Si estamos en la pantalla interactiva y en subpaso mayor a 0, retrocedemos de subpaso
-    if (currentStep.id === 'BRAND_STYLE' && brandSubStep > 0) {
-      setBrandSubStep((prev) => (prev - 1) as 0 | 1 | 2);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
+    if (currentStep.id === 'CATALOG_SETUP') {
+      if (catalogSubStep === 2) {
+        setCatalogSubStep(1);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      if (catalogSubStep === 1) {
+        setCatalogSubStep(0);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
     }
 
     if (currentStepIndex > 0) {
       setDirection(-1);
       setCurrentStepIndex((prev) => prev - 1);
-      // Si volvemos hacia BRAND_STYLE desde HERO_SECTION, mostramos el último subpaso (Tonos)
-      if (STEPS[currentStepIndex - 1]?.id === 'BRAND_STYLE') {
-        setBrandSubStep(2);
-      }
     }
   };
 
-  const handleInputChange = <K extends keyof CorporateFormData>(field: K, value: CorporateFormData[K]) => {
-    setData((prev) => ({ ...prev, [field]: value }));
-  };
+  // MÉTODOS DEL CREADOR DE CATÁLOGO
+  const addCategory = (nameToAdd?: string) => {
+    const catName = (nameToAdd || newCategoryInput).trim();
+    if (!catName) return;
 
-  const updateService = (index: number, field: keyof ServiceItem, value: string) => {
-    const updated = [...data.services];
-    updated[index] = { ...updated[index], [field]: value };
-    setData((prev) => ({ ...prev, services: updated }));
-  };
+    if (!data.categoriesList.includes(catName)) {
+      const updatedCategories = [...data.categoriesList, catName];
+      const hasDishes = data.dishesList.some((d) => d.categoryName === catName);
+      let updatedDishes = data.dishesList;
+      if (!hasDishes) {
+        updatedDishes = [
+          ...data.dishesList,
+          {
+            id: `dish-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+            categoryName: catName,
+            name: '',
+            price: '',
+            description: '',
+            imageUrl: ''
+          }
+        ];
+      }
 
-  const updateFaq = (index: number, field: keyof FaqItem, value: string) => {
-    const updated = [...data.faqs];
-    updated[index] = { ...updated[index], [field]: value };
-    setData((prev) => ({ ...prev, faqs: updated }));
-  };
-
-  const addFaq = () => {
-    if (data.faqs.length < 5) {
       setData((prev) => ({
         ...prev,
-        faqs: [...prev.faqs, { question: '', answer: '' }]
+        categoriesList: updatedCategories,
+        dishesList: updatedDishes
       }));
     }
+    setNewCategoryInput('');
   };
 
-  const removeFaq = (index: number) => {
+  const removeCategory = (catToRemove: string) => {
+    const updatedCategories = data.categoriesList.filter((c) => c !== catToRemove);
+    const updatedDishes = data.dishesList.filter((d) => d.categoryName !== catToRemove);
+    const removedDishIds = new Set(data.dishesList.filter((d) => d.categoryName === catToRemove).map((d) => d.id));
+    const updatedFeatured = data.featuredDishIds.filter((id) => !removedDishIds.has(id));
+
     setData((prev) => ({
       ...prev,
-      faqs: prev.faqs.filter((_, i) => i !== index)
+      categoriesList: updatedCategories,
+      dishesList: updatedDishes,
+      featuredDishIds: updatedFeatured
     }));
   };
 
-  const updateReview = (index: number, field: 'name' | 'company' | 'text', value: string) => {
-    const updated = [...data.reviewsList];
-    updated[index] = { ...updated[index], [field]: value };
-    setData((prev) => ({ ...prev, reviewsList: updated }));
+  const addDishToCategory = (categoryName: string) => {
+    const newDish: DishItem = {
+      id: `dish-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      categoryName,
+      name: '',
+      price: '',
+      description: '',
+      imageUrl: ''
+    };
+    setData((prev) => ({
+      ...prev,
+      dishesList: [...prev.dishesList, newDish]
+    }));
   };
 
+  const updateDish = (dishId: string, field: keyof DishItem, value: string) => {
+    setData((prev) => {
+      const updated = prev.dishesList.map((d) => {
+        if (d.id === dishId) {
+          return { ...d, [field]: value };
+        }
+        return d;
+      });
+      return { ...prev, dishesList: updated };
+    });
+  };
+
+  const removeDish = (dishId: string) => {
+    setData((prev) => ({
+      ...prev,
+      dishesList: prev.dishesList.filter((d) => d.id !== dishId),
+      featuredDishIds: prev.featuredDishIds.filter((id) => id !== dishId)
+    }));
+  };
+
+  const toggleFeaturedDish = (dishId: string) => {
+    const isCurrentlySelected = data.featuredDishIds.includes(dishId);
+    if (isCurrentlySelected) {
+      setData((prev) => ({
+        ...prev,
+        featuredDishIds: prev.featuredDishIds.filter((id) => id !== dishId)
+      }));
+    } else {
+      if (data.featuredDishIds.length < 6) {
+        setData((prev) => ({
+          ...prev,
+          featuredDishIds: [...prev.featuredDishIds, dishId]
+        }));
+      }
+    }
+  };
+
+  // MÉTODOS DE ZONAS DE DELIVERY
+  const addDeliveryZone = () => {
+    const newZone: DeliveryZone = {
+      id: `zone-${Date.now()}`,
+      name: '',
+      cost: ''
+    };
+    setData((prev) => ({
+      ...prev,
+      deliveryZones: [...prev.deliveryZones, newZone]
+    }));
+  };
+
+  const updateDeliveryZone = (index: number, field: 'name' | 'cost', value: string) => {
+    setData((prev) => {
+      const updated = [...prev.deliveryZones];
+      updated[index] = { ...updated[index], [field]: value };
+      return { ...prev, deliveryZones: updated };
+    });
+  };
+
+  const removeDeliveryZone = (index: number) => {
+    setData((prev) => ({
+      ...prev,
+      deliveryZones: prev.deliveryZones.filter((_, i) => i !== index)
+    }));
+  };
+
+  // VALIDACIÓN POR PASO
   const isNextDisabled = (): boolean => {
     const stepId = currentStep.id;
 
-    if (stepId === 'WELCOME') return false;
-    if (stepId === 'ACCOUNT_SYNC') return (data.mercadoLibreUser ?? '').trim() === '';
-    if (stepId === 'COMPANY_NAME') return (data.companyName ?? '').trim() === '';
-    if (stepId === 'BRAND_LOGO') return !data.noLogo && (data.logoUrl ?? '') === '';
-    
-    // Validación por sub-paso en BRAND_STYLE
-    if (stepId === 'BRAND_STYLE') {
-      if (brandSubStep === 0) {
-        return (data.primaryColor ?? '').trim() === '' || (data.secondaryColor ?? '').trim() === '';
+    if (stepId === 'WELCOME') {
+      return false;
+    }
+    if (stepId === 'PURCHASE_VALIDATION') {
+      return (data.mercadoLibreUser ?? '').trim() === '';
+    }
+    if (stepId === 'RESTAURANT_IDENTITY') {
+      return (data.restaurantName ?? '').trim() === '';
+    }
+    if (stepId === 'LOGO_UPLOAD') {
+      return !data.noLogo && (data.logoUrl ?? '').trim() === '';
+    }
+    if (stepId === 'VISUAL_STYLE') {
+      return (data.primaryColor ?? '').trim() === '' || !data.themeTone;
+    }
+    if (stepId === 'MANAGEMENT_PLAN') {
+      if (!data.managementPlan) return true;
+      if (data.managementPlan === 'vip' && !data.billingCycle) return true;
+      return false;
+    }
+    if (stepId === 'CATALOG_SETUP') {
+      if (catalogSubStep === 0) {
+        return data.categoriesList.length === 0;
       }
-      if (brandSubStep === 1) {
-        return data.typography === '' || (data.typography === 'Otra' && (data.customTypography ?? '').trim() === '');
+      if (catalogSubStep === 1) {
+        const validDishes = data.dishesList.filter((d) => d.name.trim() !== '' && d.price.trim() !== '');
+        return validDishes.length === 0;
       }
-      if (brandSubStep === 2) {
-        return data.backgroundTone === '';
+      if (catalogSubStep === 2) {
+        return data.featuredDishIds.length === 0;
       }
       return false;
     }
-
-    if (stepId === 'HERO_SECTION') {
-      if ((data.heroTitle ?? '').trim() === '' || (data.heroImage ?? '') === '') return true;
-      if (data.wantsMobileHero && (data.heroImageMobile ?? '') === '') return true;
-      return false;
+    if (stepId === 'LOGISTICS_WHATSAPP') {
+      const cleanPhone = (data.whatsappNumber ?? '').replace(/\D/g, '');
+      const hasPhone = cleanPhone.length >= 8;
+      const hasAnyMethod = data.deliveryMethods.delivery || data.deliveryMethods.takeaway;
+      return !hasPhone || !hasAnyMethod;
     }
-    if (stepId === 'ABOUT_COMPANY') {
-      return (data.aboutText ?? '').trim() === '' || (data.aboutImage ?? '').trim() === '';
-    }
-    if (stepId === 'VALUE_PROPOSITION') {
-      return (data.strengths ?? '').trim() === '';
-    }
-    if (stepId === 'SERVICES_PORTFOLIO') {
-      const valid = (data.services ?? []).filter((s) => (s.title ?? '').trim() !== '' && (s.description ?? '').trim() !== '');
-      return valid.length < 6;
-    }
-    if (stepId === 'FAQS_SECTION') {
-      const valid = (data.faqs ?? []).filter((f) => (f.question ?? '').trim() !== '' && (f.answer ?? '').trim() !== '');
-      const hasIncomplete = (data.faqs ?? []).some(
-        (f) => ((f.question ?? '').trim() !== '' && (f.answer ?? '').trim() === '') ||
-               ((f.question ?? '').trim() === '' && (f.answer ?? '').trim() !== '')
+    if (stepId === 'PAYMENT_METHODS') {
+      return (
+        (data.paymentCbuAlias ?? '').trim() === '' ||
+        (data.paymentAccountHolder ?? '').trim() === '' ||
+        (data.paymentBank ?? '').trim() === ''
       );
-      return valid.length === 0 || hasIncomplete;
     }
-    if (stepId === 'CLIENTS_TESTIMONIALS') {
-      if (data.useGoogleMapsReviews) return (data.googleMapsLink ?? '').trim() === '';
-      return (data.reviewsList ?? []).some((r) => (r.name ?? '').trim() === '' || (r.text ?? '').trim() === '');
-    }
-    if (stepId === 'CONTACT_CHANNELS') {
-      return (data.whatsapp ?? '').trim() === '' || (data.corporateEmail ?? '').trim() === '';
-    }
-    if (stepId === 'DOMAIN_PLAN') {
-      return !data.domainPlan;
-    }
-    if (stepId === 'DOMAIN_PREFERENCES' || stepId === 'DOMAIN_CHOICE') {
-      return (data.domainOption1 ?? '').trim() === '';
-    }
-    if (stepId === 'FINAL_REVIEW') {
+    if (stepId === 'CLOSING_TERMS') {
       return !data.acceptedTerms;
     }
 
     return false;
   };
 
+  // ENVÍO FINAL A FIREBASE FIRESTORE
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
       const clientFolderName = getClientFolderName();
-      const safeClientSlug = (data.companyName || data.mercadoLibreUser || 'proyecto')
+      const safeSlug = (data.restaurantName || data.mercadoLibreUser || 'menu_digital')
         .toLowerCase()
         .replace(/[^a-z0-9]/g, '_')
         .replace(/_+/g, '_');
-      const documentId = `${safeClientSlug}_${Date.now().toString().slice(-6)}`;
-      const selectedPlanConfig = DOMAIN_PLANS[data.domainPlan] || DOMAIN_PLANS.free;
+      const documentId = `menudigital_${safeSlug}_${Date.now().toString().slice(-6)}`;
+
+      const planNameFormatted =
+        data.managementPlan === 'vip'
+          ? `Plan Llave en Mano / VIP (${data.billingCycle.toUpperCase()})`
+          : 'Plan Autogestionable ($0)';
 
       const cleanData = {
-        // METADATOS DEL REGISTRO
+        // METADATOS
         idProyecto: documentId,
         fechaCreacion: serverTimestamp(),
         fechaRegistroLocal: new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' }),
-        estadoProyecto: selectedPlanConfig.isPaid ? 'PENDIENTE_PAGO_DOMINIO' : 'PENDIENTE_DIAGRAMACION',
-        origenFormulario: 'Template Corporativo - Sin dominio',
+        estadoProyecto: 'PENDIENTE_DIGITALIZACION',
+        tipoFormulario: 'Onboarding Menú Digital Inteligente',
 
-        // 1. IDENTIFICACIÓN DEL CLIENTE
+        // 1. IDENTIFICACIÓN
         cliente: {
           usuarioMercadoLibre: data.mercadoLibreUser,
-          nombreEmpresa: data.companyName,
-          eslogan: data.slogan || 'Sin eslogan definido',
+          nombreLocal: data.restaurantName,
           carpetaCloudinary: `${CLOUDINARY_BASE_FOLDER}/${clientFolderName.replace(/[<>:"/\\|?*#]+/g, '_').replace(/\s+/g, '_')}`
         },
 
-        // 2. IDENTIDAD VISUAL Y ESTILO
+        // 2. IDENTIDAD VISUAL
         identidadVisual: {
           logotipo: {
             tieneLogo: !data.noLogo,
-            tipo: data.noLogo ? 'Requiere diseño tipográfico' : 'Logotipo oficial adjuntado',
-            url: data.noLogo ? null : (data.logoUrl || null)
+            tipo: data.noLogo ? 'Formato texto tipográfico oficial' : 'Logotipo oficial adjuntado',
+            url: data.noLogo ? null : data.logoUrl || null
           },
-          paletaColores: {
-            colorPrimario: data.primaryColor || 'A definir por el diseñador',
-            colorSecundario: data.secondaryColor || 'A definir por el diseñador'
+          colorPrincipal: data.primaryColor || '#DC2626',
+          temaUI: data.themeTone === 'dark' ? 'Tema Oscuro (Nocturno / Premium)' : 'Tema Claro (Luminoso / Fresco)'
+        },
+
+        // 3. PLAN DE GESTIÓN Y SUSCRIPCIÓN
+        planGestion: {
+          tipo: data.managementPlan === 'vip' ? 'LLAVE_EN_MANO_VIP' : 'AUTOGESTIONABLE',
+          nombrePlan: planNameFormatted,
+          costoMensualBase: data.managementPlan === 'vip' ? 'Variable según ciclo' : '$0',
+          cicloFacturacion: data.managementPlan === 'vip' ? data.billingCycle : 'no_aplica',
+          promoReintegro40k: data.managementPlan === 'vip' && data.billingCycle === 'anual',
+          cotizacionDolarOficial: `$${dolarOficial} ARS`,
+          monedaFacturacion: 'Abonable en ARS al cambio oficial del día'
+        },
+
+        // 4. CATÁLOGO COMPLETO
+        catalogo: {
+          categorias: data.categoriesList,
+          platos: data.dishesList.filter((d) => d.name.trim() !== '' && d.price.trim() !== ''),
+          platosEstrellaIds: data.featuredDishIds,
+          totalPlatosCargados: data.dishesList.filter((d) => d.name.trim() !== '').length
+        },
+
+        // 5. LOGÍSTICA & ENVÍOS
+        logistica: {
+          whatsappReceptor: data.whatsappNumber,
+          modalidadesEntrega: {
+            delivery: data.deliveryMethods.delivery,
+            retiroLocal: data.deliveryMethods.takeaway
           },
-          tipografia: {
-            opcion: data.typography || 'A criterio del diseñador',
-            detallePersonalizado: data.typography === 'Otra' ? data.customTypography : null
-          },
-          tonoVisual: data.backgroundTone || 'A criterio del diseñador'
+          zonasEnvio: data.deliveryZones.filter((z) => z.name.trim() !== '')
         },
 
-        // 3. PORTADA Y FOTOGRAFÍA HERO
-        portadaHero: {
-          tituloPrincipal: data.heroTitle,
-          imagenDesktopUrl: data.heroImage,
-          tieneImagenMobileDedicada: data.wantsMobileHero,
-          imagenMobileUrl: data.wantsMobileHero ? data.heroImageMobile : data.heroImage
+        // 6. MEDIOS DE COBRO
+        mediosCobro: {
+          cbuCvuAlias: data.paymentCbuAlias,
+          titularCuenta: data.paymentAccountHolder,
+          bancoOBilletera: data.paymentBank,
+          aceptaEfectivoEntrega: data.acceptsCash
         },
 
-        // 4. SOBRE LA EMPRESA & PROPUESTA DE VALOR
-        sobreLaEmpresa: {
-          presentacionHistoria: data.aboutText,
-          fotografiaInstitucionalUrl: data.aboutImage || null,
-          porQueElegirnos: data.strengths
-        },
-
-        // 5. CARTERA DE SERVICIOS (6 SERVICIOS OBLIGATORIOS)
-        servicios: data.services.map((svc, index) => ({
-          posicion: index + 1,
-          titulo: svc.title,
-          descripcion: svc.description,
-          iconoSugerido: svc.iconHint || null
-        })),
-
-        // 6. PREGUNTAS FRECUENTES (FAQS)
-        preguntasFrecuentes: data.faqs
-          .filter((f) => (f.question ?? '').trim() !== '' && (f.answer ?? '').trim() !== '')
-          .map((faq, index) => ({
-            numero: index + 1,
-            pregunta: faq.question.trim(),
-            respuesta: faq.answer.trim()
-          })),
-
-        // 7. PRUEBA SOCIAL Y TESTIMONIOS
-        testimonios: {
-          modalidad: data.useGoogleMapsReviews ? 'Google Maps Verificado' : 'Carga Manual',
-          linkGoogleMaps: data.useGoogleMapsReviews ? data.googleMapsLink : null,
-          resenasManuales: data.useGoogleMapsReviews
-            ? []
-            : data.reviewsList
-                .filter((r) => (r.name ?? '').trim() || (r.text ?? '').trim())
-                .map((r) => ({
-                  autor: r.name,
-                  empresaOCargo: r.company || null,
-                  testimonio: r.text
-                }))
-        },
-
-        // 8. CANALES DE CONTACTO Y REDES
-        contacto: {
-          whatsapp: data.whatsapp,
-          emailCorporativo: data.corporateEmail,
-          redesSociales: {
-            instagram: data.instagram ? `@${data.instagram.replace('@', '')}` : null,
-            facebook: data.facebook || null,
-            linkedin: data.linkedin || null
-          },
-          direccionFisica: data.address || 'Oficinas corporativas / Modalidad remota'
-        },
-
-        // 9. DIRECCIÓN WEB Y DOMINIO
-        direccionWeb: {
-          tipoPlan: data.domainPlan,
-          nombrePlan: selectedPlanConfig.name,
-          extension: selectedPlanConfig.extension,
-          arancelOficial: selectedPlanConfig.priceNumber,
-          arancelFormateado: selectedPlanConfig.priceFormatted,
-          requierePagoMercadoPago: Boolean(selectedPlanConfig.isPaid),
-          estadoPagoDominio: selectedPlanConfig.isPaid ? 'PENDIENTE_PAGO_MERCADOPAGO' : 'INCLUIDO_GRATIS',
-          linkMercadoPago: selectedPlanConfig.mercadoPagoLink || null,
-          dominioPrioridad1: data.domainOption1,
-          dominioPrioridad2: data.domainOption2 || null,
-          dominioPrioridad3: data.domainOption3 || null,
-          politicaRenovacion: selectedPlanConfig.isPaid
-            ? 'Arancel oficial de 1 año incluido; credenciales transferidas al cliente para renovar por su cuenta anualmente ante el ente oficial'
-            : 'Subdominio permanente en Vercel sin costos de renovación',
-          hostingCloud: '100% Gratuito en Vercel Ultra Speed (Jamstack SSL)'
-        },
-
-        // 10. CONDICIONES ACEPTADAS POR EL CLIENTE
+        // 7. TÉRMINOS Y CONDICIONES
         terminosYCondiciones: {
           aceptado: data.acceptedTerms,
-          fechaAceptacion: new Date().toISOString(),
-          clausulasValidadas: [
-            '1. Cómputo del Plazo de Entrega (48 hs hábiles): Inicio contra recepción total de datos obligatorios, enlaces y archivos validados.',
-            '2. Propiedad Intelectual y Derechos del Contenido: Declaración jurada de titularidad y deslinde total a AG Digital Studio.',
-            '3. Estructura Fija, Hosting Cloud y Seguridad SSL: Adaptación fiel sin alteración de secciones; hosting Vercel y SSL bonificado.',
-            '4. Deslinde Técnico y Plataformas de Terceros: Deslinde por caídas, políticas o interrupciones de plataformas de terceros.',
-            '5. Previsualización, Revisión y Alcance de Cambios: Enlace privado de validación y una (1) instancia única e integral de ajustes menores.',
-            '6. Dominio, Gestión y Autonomía: Registro oficial por 1 año, delegación de credenciales y total autonomía sin permanencia.'
-          ],
-          declaracionLegalCheckbox: 'He leído y acepto los Términos de Contratación, Propiedad de Contenidos y Alcance Técnico. Declaro que los datos y archivos cargados son definitivos y cuento con los derechos de uso del material suministrado. Autorizo a AG Digital Studio a iniciar la producción técnica bajo las condiciones y plazos estipulados.'
+          fechaAceptacion: new Date().toISOString()
         }
       };
 
-            // Función de seguridad: Firestore arroja error fatal si encuentra cualquier valor undefined
       const sanitizeForFirestore = (obj: any): any => {
         if (obj === null || obj === undefined) return null;
         if (typeof obj !== 'object') return obj;
@@ -522,7 +575,7 @@ export default function Wizard() {
           return obj;
         }
         if (Array.isArray(obj)) {
-          return obj.map(item => sanitizeForFirestore(item));
+          return obj.map((item) => sanitizeForFirestore(item));
         }
         const clean: Record<string, any> = {};
         for (const [key, val] of Object.entries(obj)) {
@@ -533,45 +586,36 @@ export default function Wizard() {
 
       await setDoc(doc(db, FIRESTORE_COLLECTION, documentId), sanitizeForFirestore(cleanData));
 
-      if (selectedPlanConfig.isPaid && selectedPlanConfig.mercadoPagoLink) {
-        const mpBase = selectedPlanConfig.mercadoPagoLink;
-        const redirectUrl = mpBase.includes('?')
-          ? `${mpBase}&external_reference=${encodeURIComponent(documentId)}`
-          : `${mpBase}?external_reference=${encodeURIComponent(documentId)}`;
-
-        setSubmittedProject({
-          id: documentId,
-          companyName: data.companyName || data.mercadoLibreUser || 'Empresa Corporativa',
-          isPaid: true,
-          planName: selectedPlanConfig.name,
-          priceFormatted: selectedPlanConfig.priceFormatted,
-          redirectUrl: redirectUrl
-        });
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-
-        // Redirige automáticamente al link de pago de Mercado Pago
-        setTimeout(() => {
-          window.location.href = redirectUrl;
-        }, 1200);
-      } else {
-        setSubmittedProject({
-          id: documentId,
-          companyName: data.companyName || data.mercadoLibreUser || 'Empresa Corporativa',
-          isPaid: false,
-          planName: selectedPlanConfig.name,
-          priceFormatted: selectedPlanConfig.priceFormatted
-        });
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Limpiamos el localStorage tras el envío exitoso
+      try {
+        localStorage.removeItem(STORAGE_DATA_KEY);
+        localStorage.removeItem(STORAGE_STEP_KEY);
+        localStorage.removeItem(STORAGE_SUBSTEP_KEY);
+      } catch (e) {
+        console.error('Error limpiando localStorage:', e);
       }
+
+      setSubmittedProject({
+        id: documentId,
+        restaurantName: data.restaurantName || data.mercadoLibreUser || 'Local Gastronómico',
+        managementPlan: planNameFormatted,
+        billingCycle: data.managementPlan === 'vip' ? data.billingCycle : undefined
+      });
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error) {
-      console.error('Error registrando el formulario en Firestore:', error);
-      alert('Hubo un inconveniente al registrar tu formulario. Por favor, verifica tu conexión a internet.');
+      console.error('Error registrando el menú en Firestore:', error);
+      alert('Hubo un inconveniente al registrar la configuración. Por favor, verifica tu conexión a internet.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const progressPercent = Math.round((currentStepIndex / (STEPS.length - 1)) * 100);
+  const totalFormSteps = 9;
+  const progressPercent =
+    currentStep.id === 'WELCOME'
+      ? 0
+      : Math.round((currentStep.stepNumber / totalFormSteps) * 100);
 
   const slideVariants = {
     enter: (dir: number) => ({
@@ -591,50 +635,58 @@ export default function Wizard() {
     })
   };
 
+  const primaryColorCss = parseColorToCss(data.primaryColor, '#DC2626');
+
+  // Cálculos de precios en ARS al cambio oficial actual
+  const precioMensualARS = (10 * dolarOficial).toLocaleString('es-AR');
+  const precioTrimestralARS = (25 * dolarOficial).toLocaleString('es-AR');
+  const precioSemestralARS = (45 * dolarOficial).toLocaleString('es-AR');
+  const precioAnualARS = (100 * dolarOficial).toLocaleString('es-AR');
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans flex flex-col items-center pt-20 sm:pt-24 px-3 sm:px-6 relative selection:bg-slate-950 selection:text-white">
-      
-      {/* HEADER SUPERIOR FIJO REDISEÑADO */}
-      <header className="fixed top-0 left-0 w-full flex flex-col items-center z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/70 shadow-[0_4px_24px_-4px_rgba(15,23,42,0.04)]">
-        <div className={`w-full ${currentStep.id === 'DOMAIN_PLAN' ? 'max-w-6xl' : 'max-w-4xl'} px-4 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between gap-4 transition-all duration-300`}>
-          
-          {/* BRANDING ELEGANTE & MINIMALISTA */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2.5 p-1">
-              <img 
-                src="/assets/Logo.webp" 
-                alt="AG Logo" 
-                className="h-7 sm:h-8 w-auto object-contain shrink-0" 
+      {/* HEADER SUPERIOR FIJO */}
+      <header className="fixed top-0 left-0 w-full flex flex-col items-center z-50 bg-white/85 backdrop-blur-xl border-b border-slate-200/70 shadow-[0_4px_24px_-4px_rgba(15,23,42,0.04)]">
+        <div className="w-full max-w-4xl px-3 sm:px-6 py-2 sm:py-3 flex items-center justify-between gap-2 sm:gap-4">
+          {/* BRANDING */}
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="flex items-center gap-2 sm:gap-2.5 p-1 min-w-0">
+              <img
+                src="/assets/Logo.webp"
+                alt="AG Logo"
+                className="h-6 sm:h-8 w-auto object-contain shrink-0"
               />
-              <div className="flex flex-col">
-                <span className="text-xs sm:text-sm font-bold text-slate-950 tracking-tight leading-none">
-                  Portal Corporativo
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs sm:text-sm font-bold text-slate-950 tracking-tight leading-none flex items-center gap-1.5 truncate">
+                  Menú Digital
+                  <span className="hidden xs:inline">Inteligente</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
                 </span>
-                <span className="text-[11px] font-medium text-slate-500 mt-0.5">
+                <span className="text-[10px] sm:text-[11px] font-medium text-slate-500 mt-0.5 truncate">
                   AG Digital Studio
                 </span>
               </div>
             </div>
           </div>
 
-          {/* INDICADOR DE PASO MINIMALISTA */}
-          {currentStep.id !== 'WELCOME' && (
-            <div className="flex items-center">
-              <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-100/90 border border-slate-200/80 text-xs text-slate-600">
-                <span className="font-medium">Paso</span>
-                <span className="font-bold text-slate-950">{currentStepIndex}</span>
-                <span className="text-slate-400">de</span>
-                <span className="font-medium text-slate-600">{STEPS.length - 1}</span>
+          {/* INDICADOR DE PASO */}
+          {currentStep.id !== 'WELCOME' && !submittedProject && (
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-slate-100/90 border border-slate-200/80 text-xs text-slate-600">
+                <span className="font-medium hidden xs:inline">Paso</span>
+                <span className="font-bold text-slate-950">{currentStep.stepNumber}</span>
+                <span className="text-slate-400">/</span>
+                <span className="font-medium text-slate-600">{totalFormSteps}</span>
               </div>
             </div>
           )}
         </div>
 
-        {/* LÍNEA DE PROGRESO MINIMALISTA */}
-        {currentStep.id !== 'WELCOME' && (
-          <div className="w-full h-[2px] bg-slate-100 relative overflow-hidden">
+        {/* LÍNEA DE PROGRESO SUPERIOR */}
+        {currentStep.id !== 'WELCOME' && !submittedProject && (
+          <div className="w-full h-[2.5px] bg-slate-100 relative overflow-hidden">
             <motion.div
-              className="h-full bg-slate-900"
+              className="h-full bg-slate-950"
               initial={{ width: 0 }}
               animate={{ width: `${progressPercent}%` }}
               transition={{ duration: 0.35, ease: 'easeOut' }}
@@ -661,101 +713,51 @@ export default function Wizard() {
 
             <div className="flex flex-col gap-2 max-w-lg">
               <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                Orden #{submittedProject.id.toUpperCase()} · {submittedProject.isPaid ? 'Ficha Recibida & Pago en Proceso' : 'Recibida'}
+                Orden #{submittedProject.id.toUpperCase()} · Ficha Recibida
               </span>
               <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-tight">
-                ¡Ficha Corporativa Registrada con Éxito!
+                ¡Menú Digital Registrado con Éxito!
               </h2>
               <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                Los datos y archivos de <strong className="text-slate-900 font-bold">{submittedProject.companyName}</strong> fueron sincronizados correctamente en la base de datos de <strong className="text-slate-900 font-bold">AG Digital Studio</strong>.
+                Los datos y catálogo de <strong className="text-slate-900 font-bold">{submittedProject.restaurantName}</strong> fueron sincronizados correctamente en la base de datos de <strong className="text-slate-900 font-bold">AG Digital Studio</strong>.
               </p>
             </div>
-
-            {/* AVISO DE REDIRECCIÓN A MERCADO PAGO SI ES DE PAGO */}
-            {submittedProject.isPaid && (
-              <div className="w-full rounded-2xl bg-blue-50/80 border border-blue-200/90 p-4 sm:p-4.5 flex items-center justify-between gap-3 text-left">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-[#009EE3] text-white flex items-center justify-center shrink-0 shadow-sm">
-                    <MercadoPagoIcon size={20} />
-                  </div>
-                  <div className="flex flex-col text-xs text-slate-700 leading-snug">
-                    <span className="font-bold text-slate-950 text-sm">
-                      Conectando con Checkout de Mercado Pago
-                    </span>
-                    <span>
-                      Se está procesando la redirección para abonar el arancel oficial del dominio ({submittedProject.priceFormatted}). Si tu navegador no redirige automáticamente, haz clic en el botón azul.
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* ESTADO DE ALMACENAMIENTO */}
             <div className="w-full rounded-2xl bg-slate-50/90 border border-slate-200/80 p-4 sm:p-5 flex flex-col gap-3 text-left text-xs">
               <div className="flex items-center justify-between pb-2 border-b border-slate-200/60 font-semibold text-slate-700">
-                <span>Estado de Almacenamiento & Despliegue</span>
+                <span>Estado de Configuración & Base de Datos</span>
                 <span className="text-emerald-700 font-bold text-[11px] bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
                   Sincronizado
                 </span>
               </div>
               <div className="flex flex-col gap-2 text-slate-600">
                 <div className="flex items-baseline gap-2">
-                  <span className="w-32 shrink-0 font-medium text-slate-500">Base de Datos:</span>
-                  <span className="font-semibold text-slate-900 truncate">Firebase Firestore (Colección {FIRESTORE_COLLECTION})</span>
+                  <span className="w-36 shrink-0 font-medium text-slate-500">Base de Datos:</span>
+                  <span className="font-semibold text-slate-900 truncate">Firebase Firestore ({FIRESTORE_COLLECTION})</span>
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <span className="w-32 shrink-0 font-medium text-slate-500">Plan de Dominio:</span>
+                  <span className="w-36 shrink-0 font-medium text-slate-500">Plan de Gestión:</span>
+                  <span className="font-semibold text-slate-900 truncate">{submittedProject.managementPlan}</span>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="w-36 shrink-0 font-medium text-slate-500">WhatsApp Receptor:</span>
+                  <span className="font-semibold text-slate-900 truncate">{data.whatsappNumber}</span>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="w-36 shrink-0 font-medium text-slate-500">Platos Configurados:</span>
                   <span className="font-semibold text-slate-900 truncate">
-                    {submittedProject.planName || 'Configurado'} ({submittedProject.priceFormatted || 'Incluido'})
+                    {data.dishesList.filter((d) => d.name.trim() !== '').length} platos en {data.categoriesList.length} categorías ({data.featuredDishIds.length} destacados)
                   </span>
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="w-32 shrink-0 font-medium text-slate-500">Bóveda de Medios:</span>
-                  <span className="font-semibold text-slate-900 truncate">Cloudinary /{CLOUDINARY_BASE_FOLDER}/{getClientFolderName()}</span>
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="w-32 shrink-0 font-medium text-slate-500">Hosting Cloud:</span>
-                  <span className="font-semibold text-slate-900 truncate">Infraestructura Vercel (Gratuito Jamstack SSL)</span>
                 </div>
               </div>
             </div>
 
-            {/* PRÓXIMOS PASOS */}
-            <div className="w-full rounded-2xl bg-slate-900 text-white p-5 text-left flex flex-col gap-3 shadow-md">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                ¿Qué sucede a continuación?
-              </span>
-              <ul className="flex flex-col gap-2.5 text-xs text-slate-300 leading-relaxed">
-                <li className="flex items-start gap-2.5">
-                  <span className="w-5 h-5 rounded-full bg-white/10 text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">1</span>
-                  <span><strong>Optimización SEO & Redacción IA:</strong> Nuestro equipo perfecciona los textos y títulos para posicionar en Google y motores de IA.</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="w-5 h-5 rounded-full bg-white/10 text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">2</span>
-                  <span><strong>Previsualización Privada:</strong> Te enviaremos un link privado para revisar el diseño antes de la publicación final.</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="w-5 h-5 rounded-full bg-white/10 text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">3</span>
-                  <span><strong>Entrega & Autonomía:</strong> Traspaso de credenciales completas para tu total control y libertad técnica.</span>
-                </li>
-              </ul>
-            </div>
-
             {/* BOTONES DE ACCIÓN */}
             <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-              {submittedProject.isPaid && submittedProject.redirectUrl && (
-                <a
-                  href={submittedProject.redirectUrl}
-                  target="_self"
-                  className="w-full sm:w-auto h-13 px-7 rounded-2xl bg-[#009EE3] hover:bg-[#0089C7] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-lg hover:shadow-xl transition-all cursor-pointer"
-                >
-                  <MercadoPagoIcon size={18} />
-                  <span>Abonar en Mercado Pago ({submittedProject.priceFormatted})</span>
-                </a>
-              )}
               <a
                 href={`https://wa.me/5491178188323?text=${encodeURIComponent(
-                  `¡Hola AG Digital Studio! Acabo de enviar el formulario de onboarding para mi empresa "${submittedProject.companyName}" (Orden #${submittedProject.id.toUpperCase()}).`
+                  `¡Hola AG Digital Studio! Acabo de enviar el onboarding para el Menú Digital de "${submittedProject.restaurantName}" (Orden #${submittedProject.id.toUpperCase()}).`
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -769,6 +771,7 @@ export default function Wizard() {
                 onClick={() => {
                   setSubmittedProject(null);
                   setCurrentStepIndex(0);
+                  setCatalogSubStep(0);
                   setData(initialData);
                 }}
                 className="w-full sm:w-auto h-13 px-6 rounded-2xl bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 border border-slate-200 transition-all cursor-pointer"
@@ -779,7 +782,7 @@ export default function Wizard() {
           </motion.div>
         </main>
       ) : (
-        <main className={`w-full ${currentStep.id === 'DOMAIN_PLAN' ? 'max-w-6xl' : 'max-w-3xl'} flex flex-col pb-40 sm:pb-36 mt-2 sm:mt-4 px-2 sm:px-0 transition-all duration-300`}>
+        <main className="w-full max-w-3xl flex flex-col pb-36 sm:pb-32 mt-2 sm:mt-4 px-2 sm:px-0 transition-all duration-300">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={currentStep.id}
@@ -788,1486 +791,1668 @@ export default function Wizard() {
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
               className="w-full flex flex-col justify-center"
             >
+              {/* ============================================================ */}
+              {/* STEP 0: WELCOME */}
+              {/* ============================================================ */}
+              {currentStep.id === 'WELCOME' && (
+                <StepWelcome onStart={nextStep} />
+              )}
 
-            {/* ============================================================ */}
-            {/* STEP 0: WELCOME */}
-            {/* ============================================================ */}
-            {currentStep.id === 'WELCOME' && (
-              <StepWelcome 
-                onStart={nextStep} 
-                demoUrl={DEFAULT_CORPORATE_DEMO_URL} 
-              />
-            )}
-
-            {/* ============================================================ */}
-            {/* STEP 1: ACCOUNT SYNC */}
-            {/* ============================================================ */}
-            {currentStep.id === 'ACCOUNT_SYNC' && (
-              <div className="flex flex-col gap-6 py-2">
-                <div className="flex flex-col gap-2">
-                  <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
-                    Paso 01 · Identidad
-                  </span>
-                  <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-[1.15] ">
-                    ¿Cuál es tu usuario de Mercado Libre o email?
-                  </h2>
-                  <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
-                    Lo necesitamos para asociar esta configuración a tu compra de forma inmediata y segura.
-                  </p>
-                </div>
-
-                <div className="glass-panel rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col gap-5">
+              {/* ============================================================ */}
+              {/* PASO 1: Validación de Compra */}
+              {/* ============================================================ */}
+              {currentStep.id === 'PURCHASE_VALIDATION' && (
+                <div className="flex flex-col gap-6 py-2">
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs sm:text-sm font-bold text-slate-700 uppercase tracking-wide">
-                      Identificador de Compra *
-                    </label>
-                    <input
-                      type="text"
-                      value={data.mercadoLibreUser}
-                      onChange={(e) => handleInputChange('mercadoLibreUser', e.target.value)}
-                      placeholder="Ej: JUANPEREZ_VENTAS o contacto@empresa.com"
-                      className="w-full h-14 bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 rounded-2xl px-5 text-base font-bold text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-2xs"
-                      autoFocus
-                    />
+                    <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
+                      Paso 01 · Identidad
+                    </span>
+                    <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-[1.15]">
+                      ¿Cuál es tu usuario de Mercado Libre o email?
+                    </h2>
+                    <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
+                      Lo necesitamos para asociar esta configuración a tu compra de forma inmediata y segura.
+                    </p>
                   </div>
 
-                  <AgencyCopyTip message="Podés ingresar tu usuario de Mercado Libre o el correo con el que efectuaste el pago." />
-                </div>
-              </div>
-            )}
-
-            {/* ============================================================ */}
-            {/* STEP 2: COMPANY NAME & SLOGAN */}
-            {/* ============================================================ */}
-            {currentStep.id === 'COMPANY_NAME' && (
-              <div className="flex flex-col gap-6 py-2">
-                <div className="flex flex-col gap-2">
-                  <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
-                    Paso 02 · Identidad
-                  </span>
-                  <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-[1.15] ">
-                    ¿Cómo se llama tu empresa o firma comercial?
-                  </h2>
-                  <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
-                    Aparecerá en el encabezado oficial, pie de página y metadatos de posicionamiento en Google.
-                  </p>
-                </div>
-
-                <div className="glass-panel rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col gap-5">
-                  <div className="flex flex-col gap-2">
-                    <label className="text-xs sm:text-sm font-bold text-slate-700 uppercase tracking-wide">
-                      Nombre Comercial / Razón Social *
-                    </label>
-                    <input
-                      type="text"
-                      value={data.companyName}
-                      onChange={(e) => handleInputChange('companyName', e.target.value)}
-                      placeholder="Ej: Nexus Consultora S.A."
-                      className="w-full h-14 bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 rounded-2xl px-5 text-base font-bold text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-2xs"
-                      autoFocus
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <label className="text-xs sm:text-sm font-bold text-slate-700 uppercase tracking-wide">
-                      Eslogan Institucional o Propósito (Opcional)
-                    </label>
-                    <input
-                      type="text"
-                      value={data.slogan}
-                      onChange={(e) => handleInputChange('slogan', e.target.value)}
-                      placeholder="Ej: Soluciones estratégicas para el crecimiento corporativo"
-                      className="w-full h-14 bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 rounded-2xl px-5 text-base font-medium text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-2xs"
-                    />
-                  </div>
-
-                  <AgencyCopyTip message="Si no sabés con exactitud qué eslogan poner, dejá una idea simple de lo que buscás transmitir. Nuestro equipo redactará una versión atractiva que podrás validar en la previsualización." />
-                </div>
-              </div>
-            )}
-
-            {/* ============================================================ */}
-            {/* STEP 3: BRAND LOGO */}
-            {/* ============================================================ */}
-            {currentStep.id === 'BRAND_LOGO' && (
-              <div className="flex flex-col gap-6 py-2">
-                <div className="flex flex-col gap-2">
-                  <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
-                    Paso 03 · Identidad
-                  </span>
-                  <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-[1.15] ">
-                    Subí el logotipo oficial de tu marca
-                  </h2>
-                  <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
-                    Soporta imágenes en PNG, JPG o vector. Nuestro equipo limpiará los fondos si es necesario.
-                  </p>
-                </div>
-
-                <div className="glass-panel rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col gap-5">
-                  {!data.noLogo && (
-                    <ImageUpload
-                      clientFolder={getClientFolderName()}
-                      imageType="logotipo"
-                      value={data.logoUrl}
-                      onChange={(url) => handleInputChange('logoUrl', url)}
-                    />
-                  )}
-
-                  <label className="flex items-center gap-3.5 p-4 bg-slate-50/80 border border-slate-200 hover:border-slate-300 rounded-2xl cursor-pointer hover:bg-slate-100/60 transition-all">
-                    <input
-                      type="checkbox"
-                      checked={data.noLogo}
-                      onChange={(e) => {
-                        handleInputChange('noLogo', e.target.checked);
-                        if (e.target.checked) handleInputChange('logoUrl', '');
-                      }}
-                      className="w-4 h-4 rounded text-slate-900 border-slate-300 focus:ring-0 cursor-pointer shrink-0"
-                    />
-                    <div className="flex flex-col">
-                      <span className="font-bold text-slate-900 text-sm">No tenemos logotipo oficial todavía</span>
-                      <span className="text-xs text-slate-500">Diseñaremos una marca tipográfica sobria y minimalista sin costo adicional.</span>
+                  <div className="glass-panel rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col gap-5">
+                    <div className="flex flex-col gap-2">
+                      <label className="text-xs sm:text-sm font-bold text-slate-700 uppercase tracking-wide">
+                        Usuario de Mercado Libre o email *
+                      </label>
+                      <input
+                        type="text"
+                        value={data.mercadoLibreUser}
+                        onChange={(e) => handleInputChange('mercadoLibreUser', e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !isNextDisabled()) {
+                            e.preventDefault();
+                            nextStep();
+                          }
+                        }}
+                        placeholder="Ej: PIZZERIA_VENTAS o contacto@local.com"
+                        className="w-full h-14 bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 rounded-2xl px-5 text-base font-bold text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-2xs"
+                        autoFocus
+                      />
                     </div>
-                  </label>
+
+                    <AgencyCopyTip message="Podés ingresar el seudónimo con el que compraste en Mercado Libre o el correo con el que recibiste la confirmación del pago." />
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* ============================================================ */}
-            {/* STEP 4: BRAND STYLE (ESTUDIO INTERACTIVO DINÁMICO POR SUB-PASOS) */}
-            {/* ============================================================ */}
-            {currentStep.id === 'BRAND_STYLE' && (() => {
-              const primaryColorCss = parseColorToCss(data.primaryColor, '#0F172A');
-              const secondaryColorCss = parseColorToCss(data.secondaryColor, '#334155');
+              {/* ============================================================ */}
+              {/* PASO 2: Identidad del Local */}
+              {/* ============================================================ */}
+              {currentStep.id === 'RESTAURANT_IDENTITY' && (
+                <div className="flex flex-col gap-6 py-2">
+                  <div className="flex flex-col gap-2">
+                    <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
+                      Paso 02 · Identidad
+                    </span>
+                    <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-[1.15]">
+                      ¿Cómo se llama tu local gastronómico?
+                    </h2>
+                    <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
+                      Aparecerá en el encabezado oficial de tu menú web, pestaña del navegador y enlaces para tus clientes.
+                    </p>
+                  </div>
 
-              return (
-              <div className="flex flex-col gap-5 py-2">
-                <div className="flex flex-col gap-1.5">
-                  <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
-                    Paso 04 · Identidad
-                  </span>
-                  <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-[1.15] ">
-                    Estilo visual: Colores, Tipografía y Tono
-                  </h2>
-                  <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
-                    Visualizá cómo toma vida tu sitio en tiempo real a medida que seleccionás cada atributo.
-                  </p>
+                  <div className="glass-panel rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col gap-5">
+                    <div className="flex flex-col gap-2">
+                      <label className="text-xs sm:text-sm font-bold text-slate-700 uppercase tracking-wide">
+                        Nombre de tu local gastronómico *
+                      </label>
+                      <input
+                        type="text"
+                        value={data.restaurantName}
+                        onChange={(e) => handleInputChange('restaurantName', e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !isNextDisabled()) {
+                            e.preventDefault();
+                            nextStep();
+                          }
+                        }}
+                        placeholder="Ej: Pizzería Don Antonio, Smash Burger Casanova, Sushi House"
+                        className="w-full h-14 bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 rounded-2xl px-5 text-base font-bold text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-2xs"
+                        autoFocus
+                      />
+                    </div>
+
+                    <AgencyCopyTip message="Ingresá el nombre comercial tal como lo conocen tus comensales en redes sociales o cartelería." />
+                  </div>
                 </div>
+              )}
 
-                <div className="glass-panel rounded-3xl p-4 sm:p-7 shadow-sm flex flex-col gap-5 sm:gap-6">
-                  
-                  {/* PANTALLA INTERACTIVA FIJA EN LA PARTE SUPERIOR */}
-                  <div className="rounded-2xl p-3 sm:p-4 border border-slate-200/90 bg-slate-100/70 shadow-xs flex flex-col gap-2.5">
-                    {/* Barra superior de navegador de maqueta */}
-                    <div className="flex items-center justify-between px-1">
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-2.5 h-2.5 rounded-full bg-slate-300" />
-                        <span className="w-2.5 h-2.5 rounded-full bg-slate-300" />
-                        <span className="w-2.5 h-2.5 rounded-full bg-slate-300" />
-                        <span className="text-[11px]  font-medium text-slate-400 ml-2 hidden sm:inline">
-                          https://tu-empresa.agweb.design
+              {/* ============================================================ */}
+              {/* PASO 3: Carga de Logotipo */}
+              {/* ============================================================ */}
+              {currentStep.id === 'LOGO_UPLOAD' && (
+                <div className="flex flex-col gap-6 py-2">
+                  <div className="flex flex-col gap-2">
+                    <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
+                      Paso 03 · Identidad
+                    </span>
+                    <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-[1.15]">
+                      Subí el logotipo oficial de tu marca
+                    </h2>
+                    <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
+                      Soportamos imágenes PNG o JPG. Nuestro equipo lo adaptará para que se vea perfecto en teléfonos y computadoras.
+                    </p>
+                  </div>
+
+                  <div className="glass-panel rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col gap-5">
+                    {!data.noLogo && (
+                      <ImageUpload
+                        clientFolder={getClientFolderName()}
+                        imageType="logotipo_local"
+                        value={data.logoUrl}
+                        onChange={(url) => handleInputChange('logoUrl', url)}
+                        placeholderTitle="Subí el logotipo de tu local"
+                        placeholderSubtitle="Arrastrá una imagen PNG o JPG o hacé clic para buscar"
+                      />
+                    )}
+
+                    <label className="flex items-center gap-3.5 p-4 bg-slate-50/80 border border-slate-200 hover:border-slate-300 rounded-2xl cursor-pointer hover:bg-slate-100/60 transition-all select-none">
+                      <input
+                        type="checkbox"
+                        checked={data.noLogo}
+                        onChange={(e) => {
+                          handleInputChange('noLogo', e.target.checked);
+                          if (e.target.checked) handleInputChange('logoUrl', '');
+                        }}
+                        className="w-4 h-4 rounded text-slate-900 border-slate-300 focus:ring-0 cursor-pointer shrink-0"
+                      />
+                      <div className="flex flex-col">
+                        <span className="font-bold text-slate-900 text-sm">
+                          Aún no tengo logotipo oficial
+                        </span>
+                        <span className="text-xs text-slate-500">
+                          Si marcás esta opción, usaremos el nombre del local en formato texto tipográfico elegante y moderno.
                         </span>
                       </div>
-                      <span className="inline-flex items-center gap-1.5 text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full font-bold text-[10px] sm:text-[11px]">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        Maqueta en Tiempo Real
-                      </span>
-                    </div>
+                    </label>
+                  </div>
+                </div>
+              )}
 
-                    {/* Contenedor del sitio simulado */}
-                    <div 
-                      className="p-4 sm:p-5 rounded-xl border transition-all duration-300 flex flex-col gap-3.5 shadow-2xs"
-                      style={{
-                        backgroundColor: data.backgroundTone.includes('Oscuros') ? '#0B1120' : data.backgroundTone.includes('criterio') ? '#F8FAFC' : '#FFFFFF',
-                        color: data.backgroundTone.includes('Oscuros') ? '#F8FAFC' : '#0F172A',
-                        borderColor: secondaryColorCss,
-                        fontFamily: data.typography === 'Serif' 
-                          ? "'Playfair Display', Georgia, serif" 
-                          : data.typography === 'Otra' && data.customTypography.trim() 
-                          ? data.customTypography 
-                          : "'Outfit', 'Plus Jakarta Sans', sans-serif"
-                      }}
-                    >
-                      <div className="flex items-center justify-between border-b pb-2.5" style={{ borderColor: data.backgroundTone.includes('Oscuros') ? '#1E293B' : '#F1F5F9' }}>
-                        <div className="flex items-center gap-2">
-                          <div 
-                            className="w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs text-white shadow-xs transition-colors"
-                            style={{ backgroundColor: primaryColorCss }}
-                          >
-                            {data.companyName ? data.companyName.charAt(0).toUpperCase() : 'A'}
-                          </div>
-                          <span className="font-extrabold text-xs sm:text-sm tracking-tight">
-                            {data.companyName || 'Tu Firma Corporativa'}
-                          </span>
-                        </div>
-                        <span className="text-[11px] opacity-60 hidden sm:inline">Inicio · Soluciones · Nosotros · Contacto</span>
-                      </div>
+              {/* ============================================================ */}
+              {/* PASO 4: Estilo Visual (Configuración UI del menú) */}
+              {/* ============================================================ */}
+              {currentStep.id === 'VISUAL_STYLE' && (
+                <div className="flex flex-col gap-6 py-2">
+                  <div className="flex flex-col gap-2">
+                    <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
+                      Paso 04 · Diseño
+                    </span>
+                    <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-[1.15]">
+                      Estilo visual: Colores y Tono
+                    </h2>
+                    <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
+                      Definí cómo se verá tu menú en la pantalla de tus clientes. Mirá el resultado en vivo en la maqueta.
+                    </p>
+                  </div>
 
-                      <div className="flex flex-col gap-1.5 py-0.5">
-                        <span 
-                          className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded w-fit transition-colors"
-                          style={{
-                            backgroundColor: `${primaryColorCss}20`,
-                            color: primaryColorCss
-                          }}
-                        >
-                          Calidad de Agencia Digital
+                  <div className="glass-panel rounded-3xl p-5 sm:p-7 shadow-sm flex flex-col gap-6">
+                    {/* MAQUETA INTERACTIVA DE MENÚ EN TIEMPO REAL */}
+                    <div className="rounded-2xl p-3 sm:p-4 border border-slate-200 bg-slate-100/80 flex flex-col gap-2.5">
+                      <div className="flex items-center justify-between px-1">
+                        <span className="text-[11px] font-semibold text-slate-400">
+                          Vista previa en smartphone
                         </span>
-                        <h4 className="text-base sm:text-lg font-black leading-snug tracking-tight">
-                          Lideramos el crecimiento de tu organización
-                        </h4>
-                        <div className="pt-1.5 flex items-center gap-2.5">
-                          <button
-                            type="button"
-                            className="px-4 py-1.5 rounded-lg text-xs font-bold text-white shadow-2xs transition-all"
-                            style={{ backgroundColor: primaryColorCss }}
-                          >
-                            Botón Principal
-                          </button>
-                          <button
-                            type="button"
-                            className="px-4 py-1.5 rounded-lg text-xs font-bold border transition-all"
-                            style={{ 
-                              borderColor: secondaryColorCss,
-                              color: data.backgroundTone.includes('Oscuros') ? '#E2E8F0' : secondaryColorCss
-                            }}
-                          >
-                            Secundario
-                          </button>
-                        </div>
+                        <span className="inline-flex items-center gap-1.5 text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full font-bold text-[10px]">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          Simulación en Vivo
+                        </span>
                       </div>
-                    </div>
-                  </div>
 
-                  {/* SELECTOR DE SUB-PASO (TABS DINÁMICOS) */}
-                  <div className="flex items-center p-1 bg-slate-100 rounded-xl w-full">
-                    <button
-                      type="button"
-                      onClick={() => setBrandSubStep(0)}
-                      className={`flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                        brandSubStep === 0
-                          ? 'bg-white text-slate-900 shadow-2xs'
-                          : 'text-slate-500 hover:text-slate-900'
-                      }`}
-                    >
-                      1. Colores
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setBrandSubStep(1)}
-                      className={`flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                        brandSubStep === 1
-                          ? 'bg-white text-slate-900 shadow-2xs'
-                          : 'text-slate-500 hover:text-slate-900'
-                      }`}
-                    >
-                      2. Tipografía
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setBrandSubStep(2)}
-                      className={`flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                        brandSubStep === 2
-                          ? 'bg-white text-slate-900 shadow-2xs'
-                          : 'text-slate-500 hover:text-slate-900'
-                      }`}
-                    >
-                      3. Tono Visual
-                    </button>
-                  </div>
-
-                  {/* PARTE DE ABAJO QUE CAMBIA SEGÚN EL SUB-PASO */}
-                  <AnimatePresence mode="wait">
-                    {/* SUB-PASO 0: COLORES */}
-                    {brandSubStep === 0 && (
-                      <motion.div
-                        key="substep-colors"
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -8 }}
-                        transition={{ duration: 0.2 }}
-                        className="flex flex-col gap-4"
+                      <div
+                        className="rounded-2xl p-4 sm:p-5 border transition-all duration-300 flex flex-col gap-3 shadow-sm"
+                        style={{
+                          backgroundColor: data.themeTone === 'dark' ? '#0F172A' : '#FFFFFF',
+                          color: data.themeTone === 'dark' ? '#F8FAFC' : '#0F172A',
+                          borderColor: data.themeTone === 'dark' ? '#334155' : '#E2E8F0'
+                        }}
                       >
-                        <div className="flex flex-col gap-2">
-                          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
-                            Paletas sugeridas de 1 clic:
-                          </span>
-                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                            {[
-                              { name: 'Onyx & Acero', primary: '#0F172A', secondary: '#475569' },
-                              { name: 'Azul Corporativo', primary: '#1E3A8A', secondary: '#64748B' },
-                              { name: 'Esmeralda & Gris', primary: '#064E3B', secondary: '#334155' },
-                              { name: 'Vino & Carbón', primary: '#4A044E', secondary: '#1E293B' },
-                              { name: 'Azul Marino & Dorado', primary: '#0A192F', secondary: '#D4AF37' },
-                              { name: 'Petróleo & Titanio', primary: '#0F766E', secondary: '#475569' }
-                            ].map((preset) => (
-                              <button
-                                key={preset.name}
-                                type="button"
-                                onClick={() => {
-                                  handleInputChange('primaryColor', preset.primary);
-                                  handleInputChange('secondaryColor', preset.secondary);
-                                }}
-                                className="p-2.5 rounded-xl border border-slate-200/90 hover:border-slate-900 text-left transition-all flex flex-col gap-1.5 cursor-pointer hover:bg-slate-50 active:scale-[0.98]"
+                        <div className="flex items-center justify-between pb-2 border-b" style={{ borderColor: data.themeTone === 'dark' ? '#1E293B' : '#F1F5F9' }}>
+                          <div className="flex items-center gap-2">
+                            {data.logoUrl && !data.noLogo ? (
+                              <img src={data.logoUrl} alt="Logo" className="w-6 h-6 rounded object-cover" />
+                            ) : (
+                              <div
+                                className="w-6 h-6 rounded flex items-center justify-center font-black text-xs text-white"
+                                style={{ backgroundColor: primaryColorCss }}
                               >
-                                <div className="flex gap-1.5 items-center">
-                                  <span className="w-3.5 h-3.5 rounded-full border border-black/10 shadow-2xs" style={{ backgroundColor: preset.primary }} />
-                                  <span className="w-3.5 h-3.5 rounded-full border border-black/10 shadow-2xs" style={{ backgroundColor: preset.secondary }} />
-                                </div>
-                                <span className="text-xs font-bold text-slate-800 leading-tight">{preset.name}</span>
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
-                          <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-bold text-slate-700 uppercase tracking-wide flex items-center justify-between">
-                              <span>Color Principal (Botones y Acentos) *</span>
-                              <span 
-                                className="w-4 h-4 rounded-full border border-slate-300 shadow-2xs shrink-0 transition-colors" 
-                                style={{ backgroundColor: primaryColorCss }} 
-                                title={`Muestra visual: ${primaryColorCss}`}
-                              />
-                            </label>
-                            <input
-                              type="text"
-                              value={data.primaryColor}
-                              onChange={(e) => handleInputChange('primaryColor', e.target.value)}
-                              placeholder="Ej: Azul Marino o #0F172A"
-                              className="w-full h-13 bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 rounded-xl px-4 text-sm font-bold text-slate-900 outline-none transition-all shadow-2xs"
-                            />
-                          </div>
-
-                          <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-bold text-slate-700 uppercase tracking-wide flex items-center justify-between">
-                              <span>Color Secundario (Bordes y Fondos) *</span>
-                              <span 
-                                className="w-4 h-4 rounded-full border border-slate-300 shadow-2xs shrink-0 transition-colors" 
-                                style={{ backgroundColor: secondaryColorCss }} 
-                                title={`Muestra visual: ${secondaryColorCss}`}
-                              />
-                            </label>
-                            <input
-                              type="text"
-                              value={data.secondaryColor}
-                              onChange={(e) => handleInputChange('secondaryColor', e.target.value)}
-                              placeholder="Ej: Gris Grafito o #334155"
-                              className="w-full h-13 bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 rounded-xl px-4 text-sm font-bold text-slate-900 outline-none transition-all shadow-2xs"
-                            />
-                          </div>
-                        </div>
-
-                        <AgencyCopyTip message="Podés escribir palabras como 'Azul oscuro', 'Verde esmeralda', 'Dorado', o un código HEX. La maqueta arriba se adaptará en tiempo real." />
-                      </motion.div>
-                    )}
-
-                    {/* SUB-PASO 1: TIPOGRAFÍA */}
-                    {brandSubStep === 1 && (
-                      <motion.div
-                        key="substep-typography"
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -8 }}
-                        transition={{ duration: 0.2 }}
-                        className="flex flex-col gap-3.5"
-                      >
-                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
-                          Elegí la tipografía de tu plataforma:
-                        </span>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                          {[
-                            { id: 'Sans Serif', title: 'Moderna & Clean', desc: 'Sans-Serif (Inter/Outfit), clara y tecnológica' },
-                            { id: 'Serif', title: 'Editorial & Clásica', desc: 'Serif prestigiosa, tradicional y formal' },
-                            { id: 'Otra', title: 'Google Font a Medida', desc: 'Fuente específica a tu elección' }
-                          ].map((typo) => (
-                            <button
-                              key={typo.id}
-                              type="button"
-                              onClick={() => handleInputChange('typography', typo.id as any)}
-                              className={`p-4 rounded-xl border text-left transition-all active:scale-[0.98] cursor-pointer flex flex-col justify-between h-24 ${
-                                data.typography === typo.id
-                                  ? 'border-slate-900 bg-slate-900/[0.04] ring-1 ring-slate-900 shadow-2xs'
-                                  : 'border-slate-200 hover:border-slate-300 bg-white'
-                              }`}
-                            >
-                              <div className="flex items-center justify-between w-full">
-                                <span className="font-extrabold text-slate-900 text-sm ">{typo.title}</span>
-                                <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${data.typography === typo.id ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300'}`}>
-                                  {data.typography === typo.id && <Check size={11} />}
-                                </div>
+                                {data.restaurantName ? data.restaurantName.charAt(0).toUpperCase() : 'M'}
                               </div>
-                              <span className="text-xs text-slate-500 leading-snug">{typo.desc}</span>
-                            </button>
-                          ))}
+                            )}
+                            <span className="font-extrabold text-xs sm:text-sm tracking-tight">
+                              {data.restaurantName || 'Tu Local Gastronómico'}
+                            </span>
+                          </div>
+                          <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full" style={{ backgroundColor: `${primaryColorCss}25`, color: primaryColorCss }}>
+                            Abierto Ahora
+                          </span>
                         </div>
 
-                        {data.typography === 'Otra' && (
-                          <input
-                            type="text"
-                            value={data.customTypography}
-                            onChange={(e) => handleInputChange('customTypography', e.target.value)}
-                            placeholder="Escribí el nombre de la tipografía (Ej: Montserrat, Poppins, Outfit)"
-                            className="w-full h-13 bg-slate-50/70 border border-slate-200 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 rounded-xl px-4 text-sm font-bold text-slate-900 outline-none transition-all shadow-2xs mt-1"
-                            autoFocus
+                        <div className="flex items-center justify-between gap-3 pt-1">
+                          <div className="flex flex-col gap-1 min-w-0">
+                            <span className="font-bold text-sm sm:text-base leading-tight truncate">
+                              Burger Doble Cheddar & Bacon
+                            </span>
+                            <span className="text-xs opacity-70 line-clamp-1">
+                              Doble medallón 120g, cheddar fundido, panceta crocante y pan de papa.
+                            </span>
+                            <span className="font-black text-sm pt-0.5" style={{ color: primaryColorCss }}>
+                              $8.500
+                            </span>
+                          </div>
+
+                          <button
+                            type="button"
+                            className="px-3.5 py-2 rounded-xl text-xs font-bold text-white shadow-xs shrink-0 transition-transform active:scale-95 flex items-center gap-1.5"
+                            style={{ backgroundColor: primaryColorCss }}
+                          >
+                            <ShoppingBag size={13} />
+                            <span>Pedir</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* COMPONENTE A: SELECCIÓN DE COLOR PRINCIPAL */}
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wide">
+                          Color Principal (Botones y Acentos) *
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="w-4 h-4 rounded-full border border-black/15 shadow-2xs"
+                            style={{ backgroundColor: primaryColorCss }}
                           />
-                        )}
+                          <span className="text-xs font-mono font-bold text-slate-600 uppercase">
+                            {data.primaryColor || '#DC2626'}
+                          </span>
+                        </div>
+                      </div>
 
-                        <AgencyCopyTip message="Al hacer clic, la tipografía cambia instantáneamente en la maqueta interactiva arriba." />
-                      </motion.div>
-                    )}
-
-                    {/* SUB-PASO 2: TONO VISUAL */}
-                    {brandSubStep === 2 && (
-                      <motion.div
-                        key="substep-tone"
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -8 }}
-                        transition={{ duration: 0.2 }}
-                        className="flex flex-col gap-3.5"
-                      >
-                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
-                          Elegí la atmósfera de fondo del sitio:
-                        </span>
-
-                        <div className="grid grid-cols-1 gap-2.5">
-                          {[
-                            { val: 'Tonos Claros (Luminoso, limpio y clásico)', desc: 'Fondo blanco/marfil, máxima legibilidad y estética diáfana.' },
-                            { val: 'Tonos Oscuros (Elegante, premium y moderno)', desc: 'Fondo grafito/carbón, atmósfera contemporánea y prestigiosa.' },
-                            { val: 'A criterio del diseñador (Confío en ustedes)', desc: 'Nuestro equipo seleccionará el tono óptimo según tu rubro y logotipo.' }
-                          ].map((tone) => (
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {[
+                          { name: 'Rojo Fuego', hex: '#DC2626', hint: 'Parrillas & Hamburguesas' },
+                          { name: 'Naranja Bistro', hex: '#EA580C', hint: 'Pizzerías & Empanadas' },
+                          { name: 'Mostaza Gourmet', hex: '#D97706', hint: 'Fast Food & Cervecerías' },
+                          { name: 'Borgoña / Vino', hex: '#881337', hint: 'Restaurantes & Carnes' },
+                          { name: 'Verde Oliva', hex: '#15803D', hint: 'Saludable & Café' },
+                          { name: 'Café & Cacao', hex: '#78350F', hint: 'Panaderías & Pastelería' },
+                          { name: 'Negro Carbón', hex: '#18181B', hint: 'Fine Dining & Sushi' },
+                          { name: 'Azul Bistro', hex: '#1E40AF', hint: 'Tabernas & Pastas' }
+                        ].map((col) => {
+                          const isSelected = data.primaryColor.toLowerCase() === col.hex.toLowerCase();
+                          return (
                             <button
-                              key={tone.val}
+                              key={col.hex}
                               type="button"
-                              onClick={() => handleInputChange('backgroundTone', tone.val as any)}
-                              className={`p-3.5 sm:p-4 rounded-xl border text-left transition-all active:scale-[0.98] cursor-pointer flex items-center justify-between ${
-                                data.backgroundTone === tone.val
-                                  ? 'border-slate-900 bg-slate-900/[0.04] ring-1 ring-slate-900 shadow-2xs'
-                                  : 'border-slate-200 hover:border-slate-300 bg-white'
+                              onClick={() => handleInputChange('primaryColor', col.hex)}
+                              className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col gap-1.5 active:scale-95 ${
+                                isSelected
+                                  ? 'border-slate-900 bg-slate-900/[0.04] ring-2 ring-slate-900/10 shadow-xs'
+                                  : 'border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50'
                               }`}
                             >
-                              <div className="flex flex-col pr-2">
-                                <span className="font-extrabold text-slate-900 text-sm ">{tone.val.split(' (')[0]}</span>
-                                <span className="text-xs text-slate-500 mt-0.5 leading-snug">{tone.desc}</span>
+                              <div className="flex items-center justify-between">
+                                <span
+                                  className="w-5 h-5 rounded-full border border-black/10 shadow-2xs"
+                                  style={{ backgroundColor: col.hex }}
+                                />
+                                {isSelected && <Check size={14} className="text-slate-900" />}
                               </div>
-                              <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${data.backgroundTone === tone.val ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300'}`}>
-                                {data.backgroundTone === tone.val && <Check size={11} />}
-                              </div>
+                              <span className="font-bold text-xs text-slate-900">{col.name}</span>
+                              <span className="text-[10px] text-slate-400 line-clamp-1">{col.hint}</span>
                             </button>
-                          ))}
+                          );
+                        })}
+                      </div>
+
+                      <div className="flex items-center gap-3 pt-1">
+                        <input
+                          type="color"
+                          value={data.primaryColor.startsWith('#') && data.primaryColor.length === 7 ? data.primaryColor : '#DC2626'}
+                          onChange={(e) => handleInputChange('primaryColor', e.target.value)}
+                          className="w-11 h-11 rounded-xl border border-slate-200 cursor-pointer p-0.5 bg-white shadow-2xs"
+                          title="Elegir color personalizado"
+                        />
+                        <input
+                          type="text"
+                          value={data.primaryColor}
+                          onChange={(e) => handleInputChange('primaryColor', e.target.value)}
+                          placeholder="O escribí un código HEX (Ej: #E11D48)"
+                          className="flex-1 h-11 bg-slate-50 border border-slate-200 rounded-xl px-4 text-base sm:text-sm font-semibold text-slate-900 focus:border-slate-900 focus:bg-white outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* COMPONENTE B: TEMA CLARO U OSCURO */}
+                    <div className="flex flex-col gap-3 pt-2 border-t border-slate-100">
+                      <label className="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wide">
+                        Tono de Fondo del Menú *
+                      </label>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button
+                          type="button"
+                          onClick={() => handleInputChange('themeTone', 'light')}
+                          className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between active:scale-98 ${
+                            data.themeTone === 'light'
+                              ? 'border-slate-900 bg-white ring-2 ring-slate-900 shadow-sm'
+                              : 'border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-800 flex items-center justify-center shrink-0 border border-slate-200">
+                              <Sun size={20} />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="font-extrabold text-sm text-slate-900">Tema Claro</span>
+                              <span className="text-xs text-slate-500">Blancos y grises suaves, look fresco.</span>
+                            </div>
+                          </div>
+                          <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${data.themeTone === 'light' ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300'}`}>
+                            {data.themeTone === 'light' && <Check size={11} />}
+                          </div>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleInputChange('themeTone', 'dark')}
+                          className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between active:scale-98 ${
+                            data.themeTone === 'dark'
+                              ? 'border-slate-900 bg-slate-900 text-white ring-2 ring-slate-900 shadow-sm'
+                              : 'border-slate-200 hover:border-slate-300 bg-slate-900 text-white hover:bg-slate-800'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-slate-800 text-amber-300 flex items-center justify-center shrink-0 border border-slate-700">
+                              <Moon size={20} />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="font-extrabold text-sm text-white">Tema Oscuro</span>
+                              <span className="text-xs text-slate-300">Negros y carbón, look nocturno y VIP.</span>
+                            </div>
+                          </div>
+                          <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${data.themeTone === 'dark' ? 'border-white bg-white text-slate-950' : 'border-slate-600'}`}>
+                            {data.themeTone === 'dark' && <Check size={11} />}
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ============================================================ */}
+              {/* PASO 5: MODELO DE NEGOCIO Y SUSCRIPCIÓN (ÍCONOS HOMOGENEIZADOS) */}
+              {/* ============================================================ */}
+              {currentStep.id === 'MANAGEMENT_PLAN' && (
+                <div className="flex flex-col gap-6 py-2">
+                  <div className="flex flex-col gap-2">
+                    <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
+                      Paso 05 · Modelo de Negocio & Suscripción
+                    </span>
+                    <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-[1.15]">
+                      ¿Cómo preferís gestionar tu Menú de ahora en más?
+                    </h2>
+                    <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
+                      Elegí si querés administrar los precios por tu cuenta o si preferís que nuestro equipo técnico se ocupe de todo.
+                    </p>
+                  </div>
+
+                  {/* SECCIÓN A: SELECCIÓN DE MODALIDAD (2 CARDS GIGANTES) */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {/* CARD 1: PLAN AUTOGESTIONABLE ($0/MES) - ÍCONOS HOMOGENEIZADOS */}
+                    <div
+                      onClick={() => handleInputChange('managementPlan', 'autogestionable')}
+                      className={`rounded-3xl p-6 sm:p-7 border-2 transition-all cursor-pointer flex flex-col justify-between gap-5 relative select-none ${
+                        data.managementPlan === 'autogestionable'
+                          ? 'border-slate-900 bg-white ring-4 ring-slate-900/5 shadow-xl scale-[1.01]'
+                          : 'border-slate-200 bg-white/80 hover:border-slate-300 hover:bg-white shadow-sm'
+                      }`}
+                    >
+                      <div className="flex flex-col gap-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider bg-slate-100 px-3 py-1 rounded-full">
+                            Plan Autogestionable
+                          </span>
+                          <div
+                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                              data.managementPlan === 'autogestionable'
+                                ? 'border-slate-900 bg-slate-900 text-white'
+                                : 'border-slate-300'
+                            }`}
+                          >
+                            {data.managementPlan === 'autogestionable' && <Check size={12} strokeWidth={3} />}
+                          </div>
                         </div>
 
-                        <AgencyCopyTip message="Podés ver cómo cambia el contraste de fondo en la maqueta interactiva arriba." />
+                        <div>
+                          <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                            Hacelo vos mismo
+                          </h3>
+                          <div className="flex items-baseline gap-1.5 mt-1">
+                            <span className="text-3xl font-black text-slate-900">$0</span>
+                            <span className="text-xs font-bold text-slate-400">/ mes (Costo mensual)</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* CHECKERS UI HOMOGENEIZADOS: CheckCircle2 y XCircle */}
+                      <div className="flex flex-col gap-3 pt-3 border-t border-slate-100 text-xs">
+                        <ul className="flex flex-col gap-2.5 text-slate-700">
+                          <li className="flex items-start gap-2.5">
+                            <CheckCircle2 size={16} className="text-emerald-600 shrink-0 mt-0.5" />
+                            <span>Entrega del sistema base.</span>
+                          </li>
+                          <li className="flex items-start gap-2.5 text-rose-700">
+                            <XCircle size={16} className="text-rose-500 shrink-0 mt-0.5" />
+                            <span>Gestión manual de precios por tu cuenta.</span>
+                          </li>
+                          <li className="flex items-start gap-2.5 text-rose-700">
+                            <XCircle size={16} className="text-rose-500 shrink-0 mt-0.5" />
+                            <span>Aprendizaje autodidacta.</span>
+                          </li>
+                          <li className="flex items-start gap-2.5 text-rose-700">
+                            <XCircle size={16} className="text-rose-500 shrink-0 mt-0.5" />
+                            <span>Sin diseño de banners.</span>
+                          </li>
+                          <li className="flex items-start gap-2.5 text-rose-700">
+                            <XCircle size={16} className="text-rose-500 shrink-0 mt-0.5" />
+                            <span>Sin soporte técnico gratuito pasados 30 días.</span>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* CARD 2: MANTENIMIENTO VIP (RECOMENDADO) - ÍCONOS HOMOGENEIZADOS */}
+                    <div
+                      onClick={() => handleInputChange('managementPlan', 'vip')}
+                      className={`rounded-3xl p-6 sm:p-7 border-2 transition-all cursor-pointer flex flex-col justify-between gap-5 relative select-none ${
+                        data.managementPlan === 'vip'
+                          ? 'border-slate-950 bg-slate-950 text-white ring-4 ring-slate-950/15 shadow-2xl scale-[1.01]'
+                          : 'border-slate-300 bg-white hover:border-slate-900 shadow-sm'
+                      }`}
+                    >
+                      <div className="flex flex-col gap-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className={`text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full ${data.managementPlan === 'vip' ? 'bg-amber-400 text-slate-950 font-black' : 'bg-slate-900 text-white'}`}>
+                              ★ Recomendado
+                            </span>
+                            <span className={`text-xs font-semibold ${data.managementPlan === 'vip' ? 'text-slate-300' : 'text-slate-500'}`}>
+                              Nosotros nos ocupamos
+                            </span>
+                          </div>
+                          <div
+                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                              data.managementPlan === 'vip'
+                                ? 'border-amber-400 bg-amber-400 text-slate-950'
+                                : 'border-slate-300'
+                            }`}
+                          >
+                            {data.managementPlan === 'vip' && <Check size={12} strokeWidth={3} />}
+                          </div>
+                        </div>
+
+                        <div>
+                          <h3 className={`text-xl sm:text-2xl font-black tracking-tight ${data.managementPlan === 'vip' ? 'text-white' : 'text-slate-900'}`}>
+                            Mantenimiento VIP
+                          </h3>
+                          <div className="flex items-baseline gap-1.5 mt-1">
+                            <span className={`text-3xl font-black ${data.managementPlan === 'vip' ? 'text-amber-400' : 'text-slate-900'}`}>
+                              Llave en Mano
+                            </span>
+                            <span className={`text-xs font-bold ${data.managementPlan === 'vip' ? 'text-slate-400' : 'text-slate-500'}`}>
+                              (Despreocupate de todo)
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* CHECKERS UI: CheckCircle2 */}
+                      <div className={`flex flex-col gap-2.5 pt-3 border-t text-xs ${data.managementPlan === 'vip' ? 'border-slate-800' : 'border-slate-100'}`}>
+                        <ul className={`flex flex-col gap-2.5 ${data.managementPlan === 'vip' ? 'text-slate-200' : 'text-slate-700'}`}>
+                          <li className="flex items-start gap-2.5">
+                            <CheckCircle2 size={16} className={`shrink-0 mt-0.5 ${data.managementPlan === 'vip' ? 'text-amber-400' : 'text-emerald-600'}`} />
+                            <span><strong>Delegación total</strong> (nos mandás un WhatsApp y listo).</span>
+                          </li>
+                          <li className="flex items-start gap-2.5">
+                            <CheckCircle2 size={16} className={`shrink-0 mt-0.5 ${data.managementPlan === 'vip' ? 'text-amber-400' : 'text-emerald-600'}`} />
+                            <span><strong>Actualizaciones de precios ilimitadas</strong>.</span>
+                          </li>
+                          <li className="flex items-start gap-2.5">
+                            <CheckCircle2 size={16} className={`shrink-0 mt-0.5 ${data.managementPlan === 'vip' ? 'text-amber-400' : 'text-emerald-600'}`} />
+                            <span><strong>Diseño Premium</strong> (banners mensuales para promociones).</span>
+                          </li>
+                          <li className="flex items-start gap-2.5">
+                            <CheckCircle2 size={16} className={`shrink-0 mt-0.5 ${data.managementPlan === 'vip' ? 'text-amber-400' : 'text-emerald-600'}`} />
+                            <span><strong>Soporte Prioritario 24/7</strong> con hosting y dominio cubiertos.</span>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* SECCIÓN B: CICLOS DE FACTURACIÓN (A TIPO DE CAMBIO DÓLAR OFICIAL ACTUAL) */}
+                  <AnimatePresence>
+                    {data.managementPlan === 'vip' && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0, y: -10 }}
+                        animate={{ opacity: 1, height: 'auto', y: 0 }}
+                        exit={{ opacity: 0, height: 0, y: -10 }}
+                        transition={{ duration: 0.3 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="glass-panel rounded-3xl p-5 sm:p-7 shadow-md border-2 border-slate-900 flex flex-col gap-5 bg-slate-900/[0.02]">
+                          {/* DISCLAIMER TEXTO SUPERIOR CON COTIZACIÓN DÓLAR OFICIAL ACTUAL */}
+                          <div className="flex items-start gap-2.5 p-3.5 rounded-2xl bg-blue-50/80 border border-blue-200/90 text-xs text-blue-900">
+                            <Info size={17} className="text-blue-600 shrink-0 mt-0.5" />
+                            <p className="leading-relaxed">
+                              Los valores están expresados en dólares (USD) para mantener la estabilidad del servicio. El pago se realiza en Pesos Argentinos (ARS) mediante transferencia al Tipo de Cambio Dólar Oficial del día (Cotización oficial de hoy: <strong>1 USD = ${dolarOficial.toLocaleString('es-AR')} ARS</strong>{dolarFecha ? ` · Actualizado al ${dolarFecha}` : ''}).
+                            </p>
+                          </div>
+
+                          {/* LAYOUT GRID (GRID-COLS-3 EN DESKTOP) */}
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            {/* COLUMNA 1: MENSUAL */}
+                            <label
+                              onClick={() => handleInputChange('billingCycle', 'mensual')}
+                              className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between h-28 select-none ${
+                                data.billingCycle === 'mensual'
+                                  ? 'border-slate-900 bg-white ring-2 ring-slate-900 shadow-sm'
+                                  : 'border-slate-200 bg-white/70 hover:bg-white hover:border-slate-300'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="font-extrabold text-sm text-slate-900">Mensual</span>
+                                <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${data.billingCycle === 'mensual' ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300'}`}>
+                                  {data.billingCycle === 'mensual' && <Check size={10} />}
+                                </div>
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="text-xl font-black text-slate-900">10 USD</span>
+                                <span className="text-[11px] text-slate-600 font-semibold">~ ${precioMensualARS} ARS / mes</span>
+                              </div>
+                            </label>
+
+                            {/* COLUMNA 2: TRIMESTRAL */}
+                            <label
+                              onClick={() => handleInputChange('billingCycle', 'trimestral')}
+                              className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between h-28 select-none ${
+                                data.billingCycle === 'trimestral'
+                                  ? 'border-slate-900 bg-white ring-2 ring-slate-900 shadow-sm'
+                                  : 'border-slate-200 bg-white/70 hover:bg-white hover:border-slate-300'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="font-extrabold text-sm text-slate-900">Trimestral</span>
+                                <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${data.billingCycle === 'trimestral' ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300'}`}>
+                                  {data.billingCycle === 'trimestral' && <Check size={10} />}
+                                </div>
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="text-xl font-black text-slate-900">25 USD</span>
+                                <span className="text-[11px] text-slate-600 font-semibold">~ ${precioTrimestralARS} ARS total</span>
+                              </div>
+                            </label>
+
+                            {/* COLUMNA 3: SEMESTRAL */}
+                            <label
+                              onClick={() => handleInputChange('billingCycle', 'semestral')}
+                              className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between h-28 select-none ${
+                                data.billingCycle === 'semestral'
+                                  ? 'border-slate-900 bg-white ring-2 ring-slate-900 shadow-sm'
+                                  : 'border-slate-200 bg-white/70 hover:bg-white hover:border-slate-300'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="font-extrabold text-sm text-slate-900">Semestral</span>
+                                <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${data.billingCycle === 'semestral' ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300'}`}>
+                                  {data.billingCycle === 'semestral' && <Check size={10} />}
+                                </div>
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="text-xl font-black text-slate-900">45 USD</span>
+                                <span className="text-[11px] text-slate-600 font-semibold">~ ${precioSemestralARS} ARS total</span>
+                              </div>
+                            </label>
+                          </div>
+
+                          {/* LAYOUT FULL WIDTH: CARD ANUAL (100 USD) */}
+                          <label
+                            onClick={() => handleInputChange('billingCycle', 'anual')}
+                            className={`p-5 rounded-3xl border-2 transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 select-none ${
+                              data.billingCycle === 'anual'
+                                ? 'border-amber-500 bg-amber-50/90 ring-4 ring-amber-500/15 shadow-lg'
+                                : 'border-amber-300/80 bg-amber-50/40 hover:bg-amber-50/80'
+                            }`}
+                          >
+                            <div className="flex items-start gap-3.5">
+                              <div className="w-11 h-11 rounded-2xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-md mt-0.5">
+                                <Flame size={24} className="animate-pulse" />
+                              </div>
+                              <div className="flex flex-col">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-black text-slate-950 text-base sm:text-lg">
+                                    ANUAL: 100 USD
+                                  </span>
+                                  <span className="text-xs text-amber-950 font-bold bg-amber-200/80 px-2 py-0.5 rounded-md">
+                                    ~ ${precioAnualARS} ARS / año
+                                  </span>
+                                  <span className="text-[10px] uppercase font-black bg-amber-500 text-white px-2.5 py-0.5 rounded-full shadow-2xs">
+                                    Más Elegido
+                                  </span>
+                                </div>
+                                <span className="text-xs sm:text-[13px] font-bold text-amber-950 mt-1 leading-snug">
+                                  🔥 PROMO: Si abonás el año completo, te reintegramos el 100% del costo de desarrollo ($40.000 ARS). Tu sistema te sale gratis.
+                                </span>
+                                <span className="text-[11px] text-amber-800/80 mt-0.5">
+                                  Asistencia técnica prioritaria y actualizaciones ilimitadas durante todo el año.
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 self-end sm:self-center ${data.billingCycle === 'anual' ? 'border-amber-600 bg-amber-600 text-white' : 'border-amber-400 bg-white'}`}>
+                              {data.billingCycle === 'anual' && <Check size={12} strokeWidth={3} />}
+                            </div>
+                          </label>
+                        </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
-
                 </div>
-              </div>
-              );
-            })()}
+              )}
 
-            {/* ============================================================ */}
-            {/* STEP 5: HERO SECTION */}
-            {/* ============================================================ */}
-            {currentStep.id === 'HERO_SECTION' && (
-              <div className="flex flex-col gap-6 py-2">
-                <div className="flex flex-col gap-2">
-                  <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
-                    Paso 05 · Identidad
-                  </span>
-                  <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-[1.15] ">
-                    La portada: primer impacto visual
-                  </h2>
-                  <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
-                    Un titular contundente y una fotografía de alta calidad que sintetice tu propuesta de valor.
-                  </p>
-                </div>
-
-                <div className="glass-panel rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col gap-5">
+              {/* ============================================================ */}
+              {/* PASO 6: CREADOR DE CATÁLOGO (CON CARGA DE IMAGEN POR PLATO) */}
+              {/* ============================================================ */}
+              {currentStep.id === 'CATALOG_SETUP' && (
+                <div className="flex flex-col gap-6 py-2">
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs sm:text-sm font-bold text-slate-700 uppercase tracking-wide">
-                      Frase o Titular Principal de Portada *
-                    </label>
-                    <textarea
-                      value={data.heroTitle}
-                      onChange={(e) => handleInputChange('heroTitle', e.target.value)}
-                      placeholder="Ej: Impulsamos el crecimiento y la competitividad de las empresas líderes a través de soluciones estratégicas de clase mundial."
-                      className="w-full bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 rounded-2xl p-4 text-sm sm:text-base font-medium text-slate-900 placeholder:text-slate-400 outline-none transition-all min-h-[100px] resize-none leading-relaxed shadow-2xs"
-                    />
+                    <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
+                      Paso 06 · Creador de Catálogo
+                    </span>
+                    <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-[1.15]">
+                      Estructura de tu Menú y Precios
+                    </h2>
+                    <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
+                      Cargá tus categorías, agregá tus platos con sus fotos y elegí hasta 6 destacados para la portada.
+                    </p>
                   </div>
 
-                  <AgencyCopyTip message="Si no sabés qué titular poner, poné algo sencillo o la idea principal de lo que buscás transmitir con tu negocio. Nuestro equipo redactará un titular atractivo para la web y en la previsualización podrás corregirlo si no te gusta." />
-
-                  <div className="flex flex-col gap-2 pt-1">
-                    <label className="text-xs sm:text-sm font-bold text-slate-700 uppercase tracking-wide">
-                      Fotografía de Portada Desktop (Horizontal) *
-                    </label>
-                    <ImageUpload
-                      clientFolder={getClientFolderName()}
-                      imageType="portada_desktop"
-                      value={data.heroImage}
-                      onChange={(url) => handleInputChange('heroImage', url)}
-                    />
-                  </div>
-
-                  <label className="flex items-center gap-3.5 p-4 bg-slate-50/80 border border-slate-200 hover:border-slate-300 rounded-2xl cursor-pointer hover:bg-slate-100/60 transition-all">
-                    <input
-                      type="checkbox"
-                      checked={data.wantsMobileHero}
-                      onChange={(e) => handleInputChange('wantsMobileHero', e.target.checked)}
-                      className="w-4 h-4 rounded text-slate-900 border-slate-300 focus:ring-0 cursor-pointer shrink-0"
-                    />
-                    <div className="flex flex-col">
-                      <span className="font-bold text-slate-900 text-sm">Subir foto vertical optimizada para celulares</span>
-                      <span className="text-xs text-slate-500">Opcional. Si no, adaptaremos la horizontal automáticamente para móviles.</span>
-                    </div>
-                  </label>
-
-                  {data.wantsMobileHero && (
-                    <div className="flex flex-col gap-2">
-                      <label className="text-xs sm:text-sm font-bold text-slate-700 uppercase tracking-wide">
-                        Foto Celular Vertical (9:16)
-                      </label>
-                      <ImageUpload
-                        clientFolder={getClientFolderName()}
-                        imageType="portada_mobile"
-                        value={data.heroImageMobile}
-                        onChange={(url) => handleInputChange('heroImageMobile', url)}
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* ============================================================ */}
-            {/* STEP 6: ABOUT COMPANY */}
-            {/* ============================================================ */}
-            {currentStep.id === 'ABOUT_COMPANY' && (
-              <div className="flex flex-col gap-6 py-2">
-                <div className="flex flex-col gap-2">
-                  <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
-                    Paso 06 · Empresa
-                  </span>
-                  <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-[1.15] ">
-                    Contanos sobre la trayectoria e historia de la firma
-                  </h2>
-                  <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
-                    A los clientes corporativos les interesa conocer quiénes están detrás y qué experiencia los respalda.
-                  </p>
-                </div>
-
-                <div className="glass-panel rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col gap-5">
-                  <div className="flex flex-col gap-2">
-                    <label className="text-xs sm:text-sm font-bold text-slate-700 uppercase tracking-wide">
-                      Historia y Presentación Institucional *
-                    </label>
-                    <textarea
-                      value={data.aboutText}
-                      onChange={(e) => handleInputChange('aboutText', e.target.value)}
-                      placeholder="Ej: Fundada en 2012, somos una firma integral especializada en consultoría estratégica y servicios corporativos..."
-                      className="w-full bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 rounded-2xl p-4 sm:p-5 text-sm sm:text-base text-slate-900 placeholder:text-slate-400 outline-none transition-all min-h-[140px] resize-none leading-relaxed shadow-2xs"
-                    />
-                  </div>
-
-                  <AgencyCopyTip message="Contanos en pocas líneas cómo nació tu empresa o a qué se dedican. Nuestro equipo se encargará de redactar una historia institucional atractiva y en la previsualización podrás corregir cualquier detalle." />
-
-                  <div className="flex flex-col gap-2 pt-1">
-                    <label className="text-xs sm:text-sm font-bold text-slate-700 uppercase tracking-wide">
-                      Fotografía del Equipo o Instalaciones *
-                    </label>
-                    <ImageUpload
-                      clientFolder={getClientFolderName()}
-                      imageType="equipo_instalaciones"
-                      value={data.aboutImage}
-                      onChange={(url) => handleInputChange('aboutImage', url)}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* ============================================================ */}
-            {/* STEP 7: VALUE PROPOSITION & STATS */}
-            {/* ============================================================ */}
-            {currentStep.id === 'VALUE_PROPOSITION' && (
-              <div className="flex flex-col gap-6 py-2">
-                <div className="flex flex-col gap-2">
-                  <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
-                    Paso 07 · Empresa
-                  </span>
-                  <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-[1.15] ">
-                    Diferenciales: ¿Por qué elegirnos?
-                  </h2>
-                  <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
-                    Explicá las principales ventajas competitivas y motivos que distinguen a tu firma en el mercado.
-                  </p>
-                </div>
-
-                <div className="glass-panel rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col gap-5">
-                  <div className="flex flex-col gap-2">
-                    <label className="text-xs sm:text-sm font-bold text-slate-700 uppercase tracking-wide">
-                      Propuesta de Valor & Razones para Elegirnos *
-                    </label>
-                    <textarea
-                      value={data.strengths}
-                      onChange={(e) => handleInputChange('strengths', e.target.value)}
-                      placeholder="Ej: Contamos con profesionales certificados con más de una década de experiencia comprobada, atención personalizada 24/7 y confidencialidad estricta..."
-                      className="w-full bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 rounded-2xl p-4 sm:p-5 text-sm sm:text-base text-slate-900 placeholder:text-slate-400 outline-none transition-all min-h-[140px] resize-none leading-relaxed shadow-2xs"
-                    />
-                  </div>
-
-                  <AgencyCopyTip message="Explicá con tus palabras qué te destaca frente a la competencia (atención rápida, experiencia, compromiso). Nosotros lo convertiremos en una propuesta de valor atractiva para la web." />
-                </div>
-              </div>
-            )}
-
-            {/* ============================================================ */}
-            {/* STEP 8: SERVICES PORTFOLIO */}
-            {/* ============================================================ */}
-            {currentStep.id === 'SERVICES_PORTFOLIO' && (() => {
-              const completedCount = data.services.filter(s => s.title.trim() !== '' && s.description.trim() !== '').length;
-
-              return (
-              <div className="flex flex-col gap-5 sm:gap-6 py-2">
-                <div className="flex flex-col gap-1.5">
-                  <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
-                    Paso 08 · Soluciones
-                  </span>
-                  <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-[1.15] ">
-                    Cartera de 6 servicios corporativos
-                  </h2>
-                  <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
-                    Estructurá las 6 soluciones de tu empresa (los 6 campos son obligatorios para tu plataforma).
-                  </p>
-                </div>
-
-                <div className="glass-panel rounded-3xl p-4 sm:p-7 shadow-sm flex flex-col gap-5">
-                  {/* CONTADOR DE PROGRESO */}
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs sm:text-sm font-bold text-slate-700 uppercase tracking-wide">
-                        6 Servicios Requeridos
+                  {/* SUB-TABS INTERACTIVOS PARA 7A, 7B, 7C */}
+                  <div className="flex items-center p-1 bg-slate-200/80 rounded-2xl w-full text-xs font-bold gap-1 shadow-2xs">
+                    <button
+                      type="button"
+                      onClick={() => setCatalogSubStep(0)}
+                      className={`flex-1 py-2.5 px-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                        catalogSubStep === 0
+                          ? 'bg-white text-slate-950 shadow-sm'
+                          : 'text-slate-600 hover:text-slate-950'
+                      }`}
+                    >
+                      <span>7A. Categorías</span>
+                      <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-100 font-mono">
+                        {data.categoriesList.length}
                       </span>
-                      <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
-                        Obligatorios
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (data.categoriesList.length > 0) setCatalogSubStep(1);
+                      }}
+                      disabled={data.categoriesList.length === 0}
+                      className={`flex-1 py-2.5 px-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                        catalogSubStep === 1
+                          ? 'bg-white text-slate-950 shadow-sm'
+                          : data.categoriesList.length === 0
+                          ? 'text-slate-400 cursor-not-allowed opacity-50'
+                          : 'text-slate-600 hover:text-slate-950'
+                      }`}
+                    >
+                      <span>7B. Carga de Platos</span>
+                      <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-100 font-mono">
+                        {data.dishesList.filter((d) => d.name.trim() !== '').length}
                       </span>
-                    </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const valid = data.dishesList.filter((d) => d.name.trim() !== '');
+                        if (valid.length > 0) setCatalogSubStep(2);
+                      }}
+                      disabled={data.dishesList.filter((d) => d.name.trim() !== '').length === 0}
+                      className={`flex-1 py-2.5 px-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                        catalogSubStep === 2
+                          ? 'bg-white text-slate-950 shadow-sm'
+                          : data.dishesList.filter((d) => d.name.trim() !== '').length === 0
+                          ? 'text-slate-400 cursor-not-allowed opacity-50'
+                          : 'text-slate-600 hover:text-slate-950'
+                      }`}
+                    >
+                      <span>7C. Destacados</span>
+                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${data.featuredDishIds.length > 0 ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600'}`}>
+                        {data.featuredDishIds.length}/6
+                      </span>
+                    </button>
+                  </div>
 
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-20 sm:w-28 h-2 bg-slate-100 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-emerald-500 transition-all duration-300 rounded-full"
-                          style={{ width: `${(completedCount / 6) * 100}%` }}
-                        />
+                  {/* ---------------------------------------------------- */}
+                  {/* 7A. CREACIÓN DE CATEGORÍAS */}
+                  {/* ---------------------------------------------------- */}
+                  {catalogSubStep === 0 && (
+                    <motion.div
+                      key="catalog-7a"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="glass-panel rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col gap-6"
+                    >
+                      <div className="flex flex-col gap-1">
+                        <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+                          7A. Creación de Categorías
+                        </h3>
+                        <p className="text-xs sm:text-sm text-slate-500">
+                          Agregá las secciones principales de tu carta. Tus clientes navegarán tu menú a través de ellas.
+                        </p>
                       </div>
-                      <span className="text-xs sm:text-sm font-extrabold text-slate-900 ">
-                        {completedCount} de 6 completados
-                      </span>
-                    </div>
-                  </div>
 
-                  <AgencyCopyTip message="Escribí el nombre y una breve idea de cada servicio. Nuestro equipo le dará redacción profesional y atractiva para la web, y en la previsualización podrás validar o corregir todo." />
-
-                  {/* LISTADO DE 6 TARJETAS DE SERVICIOS */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {data.services.map((svc, idx) => {
-                      const isComplete = svc.title.trim() !== '' && svc.description.trim() !== '';
-
-                      return (
-                        <div
-                          key={svc.id}
-                          className="p-4 sm:p-5 rounded-2xl bg-slate-50/70 border border-slate-200/90 hover:border-slate-300 focus-within:border-slate-900 focus-within:bg-white transition-all flex flex-col gap-3 shadow-2xs"
+                      {/* INPUT + BOTÓN AGREGAR */}
+                      <div className="flex flex-col sm:flex-row items-center gap-2.5">
+                        <input
+                          type="text"
+                          value={newCategoryInput}
+                          onChange={(e) => setNewCategoryInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              addCategory();
+                            }
+                          }}
+                          placeholder="Nombre de la categoría (ej: Pizzas, Empanadas, Lomitos)"
+                          className="flex-1 w-full h-13 bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white rounded-2xl px-4 text-sm sm:text-base font-semibold text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-2xs"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => addCategory()}
+                          disabled={!newCategoryInput.trim()}
+                          className={`w-full sm:w-auto h-13 px-6 rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                            newCategoryInput.trim()
+                              ? 'bg-slate-950 hover:bg-slate-900 text-white shadow-md'
+                              : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                          }`}
                         >
-                          {/* CABECERA DE LA TARJETA */}
-                          <div className="flex items-center justify-between border-b border-slate-200/60 pb-2.5">
-                            <div className="flex items-center gap-2.5">
-                              <span className="w-6 h-6 rounded-lg bg-slate-900 text-white  text-xs font-bold flex items-center justify-center shrink-0">
-                                {idx + 1}
-                              </span>
-                              <span className="text-xs sm:text-sm font-extrabold text-slate-900 ">
-                                Servicio {idx + 1}
+                          <Plus size={16} />
+                          <span>Agregar Categoría</span>
+                        </button>
+                      </div>
+
+                      {/* SUGERENCIAS RÁPIDAS */}
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="text-[11px] font-bold text-slate-400 uppercase mr-1">
+                          Sugerencias rápidas:
+                        </span>
+                        {['Hamburguesas', 'Pizzas', 'Empanadas', 'Lomitos', 'Papas Fritas', 'Bebidas', 'Postres'].map(
+                          (sug) => (
+                            <button
+                              key={sug}
+                              type="button"
+                              onClick={() => addCategory(sug)}
+                              className="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all cursor-pointer"
+                            >
+                              + {sug}
+                            </button>
+                          )
+                        )}
+                      </div>
+
+                      {/* CATEGORÍAS RENDERIZADAS COMO TAGS */}
+                      <div className="flex flex-col gap-2 pt-2 border-t border-slate-100">
+                        <span className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+                          Tus Categorías Creadas ({data.categoriesList.length}):
+                        </span>
+
+                        {data.categoriesList.length === 0 ? (
+                          <div className="p-6 rounded-2xl border border-dashed border-slate-300 text-center text-xs text-slate-400">
+                            Aún no agregaste categorías. Escribí un nombre arriba y hacé clic en "Agregar Categoría".
+                          </div>
+                        ) : (
+                          <div className="flex flex-wrap gap-2.5 p-3 rounded-2xl bg-slate-50 border border-slate-200/80">
+                            {data.categoriesList.map((cat) => (
+                              <div
+                                key={cat}
+                                className="inline-flex items-center gap-2 pl-3.5 pr-2 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs sm:text-sm font-bold shadow-2xs group"
+                              >
+                                <span>{cat}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => removeCategory(cat)}
+                                  className="w-5 h-5 rounded-full hover:bg-red-50 text-slate-400 hover:text-red-600 flex items-center justify-center transition-all cursor-pointer"
+                                  title={`Eliminar categoría ${cat}`}
+                                >
+                                  <X size={14} />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* BOTÓN CONTINUAR A 7B */}
+                      <div className="pt-2 flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => setCatalogSubStep(1)}
+                          disabled={data.categoriesList.length === 0}
+                          className={`h-12 px-6 rounded-2xl font-bold text-xs sm:text-sm flex items-center gap-2 transition-all ${
+                            data.categoriesList.length > 0
+                              ? 'bg-slate-950 hover:bg-slate-900 text-white cursor-pointer shadow-md'
+                              : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                          }`}
+                        >
+                          <span>Continuar a Carga de Platos (7B)</span>
+                          <ArrowRight size={15} />
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* ---------------------------------------------------- */}
+                  {/* 7B. CARGA DE PLATOS (CON IMAGEN POR PLATO) */}
+                  {/* ---------------------------------------------------- */}
+                  {catalogSubStep === 1 && (
+                    <motion.div
+                      key="catalog-7b"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="flex flex-col gap-5"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex flex-col">
+                          <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+                            7B. Carga de Platos y Fotos
+                          </h3>
+                          <p className="text-xs text-slate-500">
+                            Ingresá los productos de cada categoría, subí su foto y definí precios.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setCatalogSubStep(0)}
+                          className="text-xs font-bold text-slate-600 hover:text-slate-950 underline cursor-pointer"
+                        >
+                          Editar Categorías
+                        </button>
+                      </div>
+
+                      {data.categoriesList.map((cat) => {
+                        const categoryDishes = data.dishesList.filter((d) => d.categoryName === cat);
+
+                        return (
+                          <div
+                            key={cat}
+                            className="glass-panel rounded-3xl p-5 sm:p-7 shadow-xs flex flex-col gap-4 border border-slate-200/90"
+                          >
+                            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                              <h4 className="text-sm sm:text-base font-black text-slate-900 flex items-center gap-2">
+                                <span className="w-2.5 h-2.5 rounded-full bg-slate-950" />
+                                <span>Agregá los platos para: <span className="text-amber-800">{cat}</span></span>
+                              </h4>
+                              <span className="text-xs font-semibold text-slate-400">
+                                {categoryDishes.length} {categoryDishes.length === 1 ? 'plato' : 'platos'}
                               </span>
                             </div>
 
-                            <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 ${
-                              isComplete 
-                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' 
-                                : 'bg-slate-200 text-slate-500'
-                            }`}>
-                              {isComplete ? (
-                                <>
-                                  <Check size={11} className="text-emerald-700" />
-                                  <span>Completo</span>
-                                </>
-                              ) : (
-                                <span>Pendiente</span>
-                              )}
-                            </span>
+                            {/* FILAS DE PLATOS CON SUBIDA DE FOTO INTEGRADA */}
+                            <div className="flex flex-col gap-3">
+                              {categoryDishes.map((dish, dIdx) => (
+                                <div
+                                  key={dish.id}
+                                  className="p-3.5 sm:p-4 rounded-2xl bg-slate-50/90 border border-slate-200 flex flex-col gap-3 transition-all"
+                                >
+                                  <div className="flex items-center justify-between gap-2">
+                                    <span className="text-[11px] font-bold text-slate-400 uppercase">
+                                      Plato #{dIdx + 1} en {cat}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => removeDish(dish.id)}
+                                      className="text-xs text-slate-400 hover:text-red-600 flex items-center gap-1 cursor-pointer transition-colors"
+                                      title="Eliminar plato"
+                                    >
+                                      <Trash2 size={14} />
+                                      <span className="text-[11px]">Eliminar</span>
+                                    </button>
+                                  </div>
+
+                                  <div className="flex items-start gap-3">
+                                    {/* UPLOADER DE FOTO DEL PLATO */}
+                                    <DishImageUpload
+                                      value={dish.imageUrl}
+                                      onChange={(url) => updateDish(dish.id, 'imageUrl', url)}
+                                      clientFolder={getClientFolderName()}
+                                      dishName={dish.name}
+                                    />
+
+                                    {/* CAMPOS DEL PLATO */}
+                                    <div className="flex-1 flex flex-col gap-2 min-w-0">
+                                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                        <div className="sm:col-span-2">
+                                          <input
+                                            type="text"
+                                            value={dish.name}
+                                            onChange={(e) => updateDish(dish.id, 'name', e.target.value)}
+                                            placeholder="Nombre del plato (Requerido) *"
+                                            className="w-full h-11 bg-white border border-slate-200 focus:border-slate-900 rounded-xl px-3.5 text-base sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 outline-none"
+                                          />
+                                        </div>
+
+                                        <div>
+                                          <input
+                                            type="text"
+                                            value={dish.price}
+                                            onChange={(e) => updateDish(dish.id, 'price', e.target.value)}
+                                            placeholder="Precio $ *"
+                                            className="w-full h-11 bg-white border border-slate-200 focus:border-slate-900 rounded-xl px-3.5 text-base sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 outline-none"
+                                          />
+                                        </div>
+                                      </div>
+
+                                      <input
+                                        type="text"
+                                        value={dish.description || ''}
+                                        onChange={(e) => updateDish(dish.id, 'description', e.target.value)}
+                                        placeholder="Descripción breve (Opcional, ej: Ingredientes o guarnición)"
+                                        className="w-full h-10 bg-white border border-slate-200 focus:border-slate-900 rounded-xl px-3.5 text-base sm:text-xs font-medium text-slate-700 placeholder:text-slate-400 outline-none"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* BOTÓN SECUNDARIO */}
+                            <button
+                              type="button"
+                              onClick={() => addDishToCategory(cat)}
+                              className="w-full py-3 rounded-2xl bg-white hover:bg-slate-50 border border-dashed border-slate-300 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                            >
+                              <Plus size={15} />
+                              <span>+ Agregar otro plato a {cat}</span>
+                            </button>
                           </div>
+                        );
+                      })}
 
-                          {/* NOMBRE DEL SERVICIO */}
-                          <div className="flex flex-col gap-1">
-                            <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wide">
-                              Nombre del Servicio *
-                            </label>
-                            <input
-                              type="text"
-                              value={svc.title}
-                              onChange={(e) => updateService(idx, 'title', e.target.value)}
-                              placeholder={
-                                idx === 0 ? 'Ej: Consultoría Estratégica' :
-                                idx === 1 ? 'Ej: Asesoramiento Tributario y Legal' :
-                                idx === 2 ? 'Ej: Auditoría y Compliance' :
-                                idx === 3 ? 'Ej: Transformación Digital & IT' :
-                                idx === 4 ? 'Ej: Gestión de Talento y RRHH' :
-                                'Ej: Capacitación Ejecutiva'
-                              }
-                              className="w-full text-xs sm:text-sm font-bold text-slate-900 bg-white border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:ring-2 focus:ring-slate-900/5 rounded-xl px-3.5 py-2.5 outline-none  shadow-2xs placeholder:text-slate-400 placeholder:font-normal"
-                            />
-                          </div>
-
-                          {/* DESCRIPCIÓN */}
-                          <div className="flex flex-col gap-1">
-                            <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wide">
-                              Descripción breve *
-                            </label>
-                            <textarea
-                              value={svc.description}
-                              onChange={(e) => updateService(idx, 'description', e.target.value)}
-                              placeholder="Breve idea de lo que incluye, a quién está dirigido y qué resultados brinda..."
-                              className="w-full text-xs text-slate-800 bg-white border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:ring-2 focus:ring-slate-900/5 rounded-xl p-3 outline-none resize-none h-20 placeholder:text-slate-400 leading-relaxed shadow-2xs"
-                            />
-                          </div>
-
-                          {/* ÍCONO ORIENTATIVO */}
-                          <div className="flex flex-col gap-1">
-                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">
-                              Ícono orientativo (Opcional)
-                            </label>
-                            <input
-                              type="text"
-                              value={svc.iconHint}
-                              onChange={(e) => updateService(idx, 'iconHint', e.target.value)}
-                              placeholder="Ej: Gráfico, Balanza, Maletín, Escudo, Cohete"
-                              className="w-full text-xs text-slate-700 bg-white border border-slate-200 hover:border-slate-300 focus:border-slate-900 rounded-lg px-3 py-1.5 outline-none shadow-2xs placeholder:text-slate-400"
-                            />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-              );
-            })()}
-
-            {/* ============================================================ */}
-            {/* STEP 9: FAQS SECTION */}
-            {/* ============================================================ */}
-            {currentStep.id === 'FAQS_SECTION' && (
-              <div className="flex flex-col gap-6 py-2">
-                <div className="flex flex-col gap-2">
-                  <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
-                    Paso 09 · Soluciones
-                  </span>
-                  <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-[1.15] ">
-                    Preguntas frecuentes de tus clientes
-                  </h2>
-                  <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
-                    Anticípate a las dudas habituales de contratación, modalidades de pago o plazos de entrega.
-                  </p>
-                </div>
-
-                <div className="glass-panel rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col gap-5">
-                  <AgencyCopyTip message="Escribí las dudas y respuestas tal como las conversás en el día a día. Nuestro equipo cuidará la redacción para que luzcan claras y profesionales para tu web." />
-
-                  {data.faqs.map((faq, idx) => (
-                    <div
-                      key={idx}
-                      className="p-4 rounded-xl bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus-within:border-slate-900 focus-within:bg-white transition-all flex flex-col gap-2.5 shadow-2xs"
-                    >
-                      <div className="flex items-center justify-between gap-2.5">
-                        <input
-                          type="text"
-                          value={faq.question}
-                          onChange={(e) => updateFaq(idx, 'question', e.target.value)}
-                          placeholder="Pregunta frecuente (Ej: ¿Cómo presupuestan?)"
-                          className="w-full font-extrabold text-xs sm:text-sm text-slate-900 bg-transparent outline-none "
-                        />
-                        {data.faqs.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeFaq(idx)}
-                            className="text-slate-400 hover:text-red-500 p-1 cursor-pointer transition-colors"
-                            title="Eliminar pregunta"
-                          >
-                            <Trash2 size={15} />
-                          </button>
-                        )}
-                      </div>
-
-                      <textarea
-                        value={faq.answer}
-                        onChange={(e) => updateFaq(idx, 'answer', e.target.value)}
-                        placeholder="Respuesta explicada con palabras simples..."
-                        className="w-full text-xs text-slate-700 bg-white border border-slate-200/90 rounded-lg p-2.5 outline-none resize-none h-16 placeholder:text-slate-400 leading-relaxed shadow-2xs"
-                      />
-                    </div>
-                  ))}
-
-                  {data.faqs.length < 5 && (
-                    <button
-                      type="button"
-                      onClick={addFaq}
-                      className="h-11 rounded-xl border border-dashed border-slate-300 hover:border-slate-400 hover:bg-slate-50 text-slate-700 hover:text-slate-950 font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
-                    >
-                      <Plus size={15} /> Añadir otra pregunta
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* ============================================================ */}
-            {/* STEP 10: CLIENTS & TESTIMONIALS */}
-            {/* ============================================================ */}
-            {currentStep.id === 'CLIENTS_TESTIMONIALS' && (
-              <div className="flex flex-col gap-6 py-2">
-                <div className="flex flex-col gap-2">
-                  <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
-                    Paso 10 · Prueba Social
-                  </span>
-                  <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-[1.15] ">
-                    Testimonios: quienes confían en tu trabajo
-                  </h2>
-                  <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
-                    Las recomendaciones de directivos y clientes aceleran la toma de decisión en prospectos nuevos.
-                  </p>
-                </div>
-
-                <div className="glass-panel rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col gap-5">
-                  <label className="flex items-center gap-3.5 p-4 bg-slate-50/80 border border-slate-200 hover:border-slate-300 rounded-xl cursor-pointer hover:bg-slate-100/60 transition-all">
-                    <input
-                      type="checkbox"
-                      checked={data.useGoogleMapsReviews}
-                      onChange={(e) => handleInputChange('useGoogleMapsReviews', e.target.checked)}
-                      className="w-4 h-4 rounded text-slate-900 border-slate-300 focus:ring-0 shrink-0 cursor-pointer"
-                    />
-                    <div className="flex flex-col">
-                      <span className="font-bold text-slate-900 text-sm">
-                        Extraer opiniones directamente de Google Maps
-                      </span>
-                      <span className="text-xs text-slate-500">
-                        Mostraremos las reseñas verificadas de tu ficha comercial.
-                      </span>
-                    </div>
-                  </label>
-
-                  {data.useGoogleMapsReviews ? (
-                    <div className="flex flex-col gap-2">
-                      <label className="text-xs sm:text-sm font-bold text-slate-700 uppercase tracking-wide">
-                        Enlace a tu perfil de Google Maps *
-                      </label>
-                      <div className="h-13 flex items-center gap-2.5 bg-slate-50/70 border border-slate-200 rounded-xl px-4 focus-within:border-slate-900 focus-within:bg-white transition-all shadow-2xs">
-                        <LinkIcon size={16} className="text-slate-400 shrink-0" />
-                        <input
-                          type="text"
-                          value={data.googleMapsLink}
-                          onChange={(e) => handleInputChange('googleMapsLink', e.target.value)}
-                          placeholder="https://maps.app.goo.gl/..."
-                          className="w-full text-xs sm:text-sm text-slate-900 bg-transparent outline-none font-medium"
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col gap-3.5">
-                      <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                        <span className="text-xs sm:text-sm font-bold text-slate-700 uppercase tracking-wide">
-                          3 Testimonios Corporativos *
-                        </span>
-                        <div className="flex gap-0.5 text-amber-400">
-                          <Star size={13} fill="currentColor" />
-                          <Star size={13} fill="currentColor" />
-                          <Star size={13} fill="currentColor" />
-                          <Star size={13} fill="currentColor" />
-                          <Star size={13} fill="currentColor" />
-                        </div>
-                      </div>
-
-                      {data.reviewsList.map((review, idx) => (
-                        <div
-                          key={idx}
-                          className="p-4 rounded-xl bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus-within:border-slate-900 focus-within:bg-white transition-all flex flex-col gap-2.5 shadow-2xs"
+                      {/* BOTÓN CONTINUAR A 7C */}
+                      <div className="pt-2 flex items-center justify-between gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setCatalogSubStep(0)}
+                          className="h-12 px-5 rounded-2xl border border-slate-200 hover:bg-slate-50 font-semibold text-xs text-slate-700 flex items-center gap-2 transition-all cursor-pointer"
                         >
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs  font-bold text-slate-400">Testimonio 0{idx + 1}</span>
-                            <Quote size={14} className="text-slate-300" />
-                          </div>
+                          <ArrowLeft size={15} />
+                          <span>Volver a Categorías</span>
+                        </button>
 
-                          <textarea
-                            value={review.text}
-                            onChange={(e) => updateReview(idx, 'text', e.target.value)}
-                            placeholder="Cita del cliente sobre el impacto o resultados..."
-                            className="w-full text-xs text-slate-800 bg-white border border-slate-200/90 rounded-lg p-2.5 outline-none resize-none h-18 placeholder:text-slate-400 leading-relaxed shadow-2xs"
-                          />
-
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            <input
-                              type="text"
-                              value={review.name}
-                              onChange={(e) => updateReview(idx, 'name', e.target.value)}
-                              placeholder="Nombre (Ej: Lic. Martín Gómez)"
-                              className="h-10 bg-white border border-slate-200/90 rounded-lg px-3 text-xs text-slate-900 font-bold placeholder:text-slate-400 outline-none shadow-2xs"
-                            />
-                            <input
-                              type="text"
-                              value={review.company || ''}
-                              onChange={(e) => updateReview(idx, 'company', e.target.value)}
-                              placeholder="Cargo / Empresa (Ej: Director en FinGroup)"
-                              className="h-10 bg-white border border-slate-200/90 rounded-lg px-3 text-xs text-slate-600 placeholder:text-slate-400 outline-none shadow-2xs"
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                        <button
+                          type="button"
+                          onClick={() => setCatalogSubStep(2)}
+                          disabled={data.dishesList.filter((d) => d.name.trim() !== '').length === 0}
+                          className={`h-12 px-6 rounded-2xl font-bold text-xs sm:text-sm flex items-center gap-2 transition-all ${
+                            data.dishesList.filter((d) => d.name.trim() !== '').length > 0
+                              ? 'bg-slate-950 hover:bg-slate-900 text-white cursor-pointer shadow-md'
+                              : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                          }`}
+                        >
+                          <span>Continuar a Destacados (7C)</span>
+                          <ArrowRight size={15} />
+                        </button>
+                      </div>
+                    </motion.div>
                   )}
-                </div>
-              </div>
-            )}
 
-            {/* ============================================================ */}
-            {/* STEP 11: CONTACT CHANNELS */}
-            {/* ============================================================ */}
-            {currentStep.id === 'CONTACT_CHANNELS' && (
-              <div className="flex flex-col gap-6 py-2">
-                <div className="flex flex-col gap-2">
-                  <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
-                    Paso 11 · Contacto
-                  </span>
-                  <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-[1.15]">
-                    Canales de contacto y presencia
-                  </h2>
-                  <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
-                    Vías oficiales donde se derivarán las consultas comerciales y prospectos calificados.
-                  </p>
-                </div>
-
-                <div className="glass-panel rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col gap-5">
-                  {/* CANALES OBLIGATORIOS: WHATSAPP Y EMAIL */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs sm:text-sm font-semibold text-slate-700 tracking-wide flex items-center gap-2">
-                        <WhatsAppIcon size={15} className="text-slate-500 shrink-0" />
-                        <span>WhatsApp Comercial *</span>
-                      </label>
-                      <input
-                        type="tel"
-                        value={data.whatsapp}
-                        onChange={(e) => handleInputChange('whatsapp', e.target.value)}
-                        placeholder="+54 9 11 0000-0000"
-                        className="w-full h-13 bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 rounded-xl px-4 text-sm font-semibold text-slate-900 outline-none transition-all shadow-2xs"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs sm:text-sm font-semibold text-slate-700 tracking-wide flex items-center gap-2">
-                        <Mail size={15} className="text-slate-500 shrink-0" />
-                        <span>Email Institucional *</span>
-                      </label>
-                      <input
-                        type="email"
-                        value={data.corporateEmail}
-                        onChange={(e) => handleInputChange('corporateEmail', e.target.value)}
-                        placeholder="contacto@empresa.com o info@estudio.com"
-                        className="w-full h-13 bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 rounded-xl px-4 text-sm font-semibold text-slate-900 outline-none transition-all shadow-2xs"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="h-px bg-slate-100 my-1" />
-
-                  {/* REDES SOCIALES: INSTAGRAM Y FACEBOOK (MINIMALISTAS) */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs sm:text-sm font-semibold text-slate-700 tracking-wide flex items-center gap-2">
-                        <InstagramIcon size={15} className="text-slate-500 shrink-0" />
-                        <span>Instagram (Opcional)</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={data.instagram}
-                        onChange={(e) => handleInputChange('instagram', e.target.value)}
-                        placeholder="@tuempresa o instagram.com/tuempresa"
-                        className="w-full h-13 bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 rounded-xl px-4 text-sm text-slate-900 outline-none transition-all shadow-2xs"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs sm:text-sm font-semibold text-slate-700 tracking-wide flex items-center gap-2">
-                        <FacebookIcon size={15} className="text-slate-500 shrink-0" />
-                        <span>Facebook (Opcional)</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={data.facebook}
-                        onChange={(e) => handleInputChange('facebook', e.target.value)}
-                        placeholder="facebook.com/tuempresa o @tuempresa"
-                        className="w-full h-13 bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 rounded-xl px-4 text-sm text-slate-900 outline-none transition-all shadow-2xs"
-                      />
-                    </div>
-                  </div>
-
-                  {/* LINKEDIN */}
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs sm:text-sm font-semibold text-slate-700 tracking-wide flex items-center gap-2">
-                      <LinkedinIcon size={15} className="text-slate-500 shrink-0" />
-                      <span>Página de LinkedIn (Opcional)</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={data.linkedin}
-                      onChange={(e) => handleInputChange('linkedin', e.target.value)}
-                      placeholder="https://www.linkedin.com/company/tu-empresa"
-                      className="w-full h-13 bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 rounded-xl px-4 text-sm text-slate-900 outline-none transition-all shadow-2xs"
-                    />
-                  </div>
-
-                  {/* DIRECCIÓN FÍSICA */}
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs sm:text-sm font-semibold text-slate-700 tracking-wide flex items-center gap-2">
-                      <MapPin size={15} className="text-slate-500 shrink-0" />
-                      <span>Dirección de Sede Física u Oficinas (Opcional)</span>
-                    </label>
-                    <AddressAutocomplete
-                      value={data.address}
-                      onChange={(url) => handleInputChange('address', url)}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* ============================================================ */}
-            {/* STEP 12: DOMAIN PLAN */}
-            {/* ============================================================ */}
-            {currentStep.id === 'DOMAIN_PLAN' && (
-              <StepDomainPlan
-                selectedPlan={data.domainPlan}
-                onSelectPlan={(plan) => handleInputChange('domainPlan', plan)}
-              />
-            )}
-
-            {/* ============================================================ */}
-            {/* STEP 13: DOMAIN PREFERENCES */}
-            {/* ============================================================ */}
-            {currentStep.id === 'DOMAIN_PREFERENCES' && (
-              <StepDomainPreferences
-                selectedPlan={data.domainPlan}
-                domainOption1={data.domainOption1}
-                domainOption2={data.domainOption2}
-                domainOption3={data.domainOption3}
-                onChangeOption={handleInputChange}
-                onGoBackToPlans={() => {
-                  const planStepIndex = STEPS.findIndex((s) => s.id === 'DOMAIN_PLAN');
-                  if (planStepIndex >= 0) {
-                    setDirection(-1);
-                    setCurrentStepIndex(planStepIndex);
-                  }
-                }}
-              />
-            )}
-
-            {/* ============================================================ */}
-            {/* STEP 13: FINAL REVIEW & CONFIRMATION */}
-            {/* ============================================================ */}
-            {currentStep.id === 'FINAL_REVIEW' && (
-              <div className="flex flex-col gap-6 py-2">
-                <div className="flex flex-col gap-2">
-                  <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
-                    Paso 14 · Confirmación
-                  </span>
-                  <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-[1.15]">
-                    Ficha final del proyecto
-                  </h2>
-                  <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
-                    Revisa los datos recopilados antes de enviar la orden definitiva al equipo.
-                  </p>
-                </div>
-
-                <div className="glass-panel rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col gap-5">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <div>
-                      <h3 className="text-base sm:text-lg font-bold text-slate-900">{data.companyName || 'Empresa Corporativa'}</h3>
-                      {data.slogan && <p className="text-xs text-slate-500 italic mt-0.5">"{data.slogan}"</p>}
-                    </div>
-                    <span className="px-3 py-1 rounded-full bg-slate-900 text-white text-xs font-semibold">
-                      AG Digital Studio
-                    </span>
-                  </div>
-
-                  {/* RESUMEN DE FICHA DE SERVICIO PERFECTAMENTE ALINEADO */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 items-stretch">
-                    {/* CARD 1: IDENTIDAD VISUAL */}
-                    <div className="p-4 sm:p-4.5 rounded-2xl bg-slate-50/90 border border-slate-200/80 flex flex-col justify-between h-full">
-                      <div className="flex items-center justify-between pb-2 mb-2.5 border-b border-slate-200/60">
-                        <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                          01 · Identidad Visual
-                        </span>
-                        <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
-                      </div>
-                      <div className="flex flex-col gap-2 text-xs">
-                        <div className="flex items-baseline gap-2">
-                          <span className="w-28 sm:w-32 shrink-0 text-slate-500 font-medium">Logotipo:</span>
-                          <span className="font-semibold text-slate-900 truncate min-w-0 flex-1">
-                            {data.noLogo ? 'Diseño tipográfico' : 'Logotipo oficial cargado'}
+                  {/* ---------------------------------------------------- */}
+                  {/* 7C. SELECCIÓN DE DESTACADOS (HASTA 6 PLATOS ESTRELLA) */}
+                  {/* ---------------------------------------------------- */}
+                  {catalogSubStep === 2 && (
+                    <motion.div
+                      key="catalog-7c"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="glass-panel rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col gap-6"
+                    >
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                            <span>Elegí tus 6 platos estrella</span>
+                            <Star size={18} className="text-amber-500 fill-amber-500" />
+                          </h3>
+                          <span className={`text-xs font-bold px-3 py-1 rounded-full ${data.featuredDishIds.length === 6 ? 'bg-amber-100 text-amber-900 font-black' : 'bg-slate-100 text-slate-600'}`}>
+                            {data.featuredDishIds.length} de 6 seleccionados
                           </span>
                         </div>
-                        <div className="flex items-baseline gap-2">
-                          <span className="w-28 sm:w-32 shrink-0 text-slate-500 font-medium">Tipografía:</span>
-                          <span className="font-semibold text-slate-800 truncate min-w-0 flex-1">
-                            {data.typography || 'A criterio de diseño'}
-                          </span>
-                        </div>
-                        <div className="flex items-baseline gap-2">
-                          <span className="w-28 sm:w-32 shrink-0 text-slate-500 font-medium">Tono visual:</span>
-                          <span className="text-slate-700 truncate min-w-0 flex-1">
-                            {data.backgroundTone ? data.backgroundTone.split(' (')[0] : 'A criterio de diseño'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* CARD 2: ESTRUCTURA & SOLUCIONES */}
-                    <div className="p-4 sm:p-4.5 rounded-2xl bg-slate-50/90 border border-slate-200/80 flex flex-col justify-between h-full">
-                      <div className="flex items-center justify-between pb-2 mb-2.5 border-b border-slate-200/60">
-                        <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                          02 · Estructura & Contenido
-                        </span>
-                        <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
-                      </div>
-                      <div className="flex flex-col gap-2 text-xs">
-                        <div className="flex items-baseline gap-2">
-                          <span className="w-28 sm:w-32 shrink-0 text-slate-500 font-medium">Servicios:</span>
-                          <span className="font-semibold text-slate-900 truncate min-w-0 flex-1">
-                            6 Soluciones corporativas
-                          </span>
-                        </div>
-                        <div className="flex items-baseline gap-2">
-                          <span className="w-28 sm:w-32 shrink-0 text-slate-500 font-medium">Preguntas FAQ:</span>
-                          <span className="font-semibold text-slate-800 truncate min-w-0 flex-1">
-                            {data.faqs.filter(f => f.question).length} Preguntas cargadas
-                          </span>
-                        </div>
-                        <div className="flex items-baseline gap-2">
-                          <span className="w-28 sm:w-32 shrink-0 text-slate-500 font-medium">Testimonios:</span>
-                          <span className="text-slate-700 truncate min-w-0 flex-1">
-                            {data.useGoogleMapsReviews ? 'Google Maps verificado' : `${data.reviewsList.filter(r => r.name).length} Testimonios manuales`}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* CARD 3: CANALES DE CONTACTO */}
-                    <div className="p-4 sm:p-4.5 rounded-2xl bg-slate-50/90 border border-slate-200/80 flex flex-col justify-between h-full">
-                      <div className="flex items-center justify-between pb-2 mb-2.5 border-b border-slate-200/60">
-                        <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                          03 · Canales de Contacto
-                        </span>
-                        <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
-                      </div>
-                      <div className="flex flex-col gap-2 text-xs">
-                        <div className="flex items-baseline gap-2">
-                          <span className="w-28 sm:w-32 shrink-0 text-slate-500 font-medium">WhatsApp:</span>
-                          <span className="font-semibold text-slate-900 truncate min-w-0 flex-1">
-                            {data.whatsapp || 'Sin registrar'}
-                          </span>
-                        </div>
-                        <div className="flex items-baseline gap-2">
-                          <span className="w-28 sm:w-32 shrink-0 text-slate-500 font-medium">Email:</span>
-                          <span className="font-semibold text-slate-800 truncate min-w-0 flex-1">
-                            {data.corporateEmail || 'Sin registrar'}
-                          </span>
-                        </div>
-                        <div className="flex items-baseline gap-2">
-                          <span className="w-28 sm:w-32 shrink-0 text-slate-500 font-medium">Presencia Social:</span>
-                          <span className="text-slate-700 truncate min-w-0 flex-1">
-                            {data.instagram ? `@${data.instagram.replace('@','')}` : data.facebook ? 'Facebook configurado' : data.linkedin ? 'LinkedIn configurado' : 'Canales listos'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* CARD 4: DIRECCIÓN WEB & HOSPEDAJE */}
-                    <div className="p-4 sm:p-4.5 rounded-2xl bg-slate-50/90 border border-slate-200/80 flex flex-col justify-between h-full">
-                      <div className="flex items-center justify-between pb-2 mb-2.5 border-b border-slate-200/60">
-                        <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                          04 · Dirección Web & Hosting
-                        </span>
-                        <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
-                      </div>
-                      <div className="flex flex-col gap-2 text-xs">
-                        <div className="flex items-baseline gap-2">
-                          <span className="w-28 sm:w-32 shrink-0 text-slate-500 font-medium">Plan Dominio:</span>
-                          <span className="font-semibold text-slate-900 truncate min-w-0 flex-1">
-                            {DOMAIN_PLANS[data.domainPlan]?.name || 'Dominio Web'} ({DOMAIN_PLANS[data.domainPlan]?.priceFormatted})
-                          </span>
-                        </div>
-                        <div className="flex items-baseline gap-2">
-                          <span className="w-28 sm:w-32 shrink-0 text-slate-500 font-medium">1ª Opción:</span>
-                          <span className="font-semibold text-slate-800 truncate min-w-0 flex-1">
-                            {data.domainOption1 || 'A definir'}
-                          </span>
-                        </div>
-                        <div className="flex items-baseline gap-2">
-                          <span className="w-28 sm:w-32 shrink-0 text-slate-500 font-medium">Alternativa:</span>
-                          <span className="text-slate-700 truncate min-w-0 flex-1">
-                            {data.domainOption2 ? data.domainOption2 : 'No especificada'}
-                          </span>
-                        </div>
-                        <div className="flex items-baseline gap-2">
-                          <span className="w-28 sm:w-32 shrink-0 text-slate-500 font-medium">Hosting Cloud:</span>
-                          <span className="text-slate-700 truncate min-w-0 flex-1">
-                            Alojado en Vercel (Gratuito) + SSL
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* ÉNFASIS EN TÉRMINOS Y CONDICIONES (TOTALMENTE SOLVENTADOS Y PERFECTAMENTE ALINEADOS) */}
-                <div className="glass-panel rounded-3xl p-5 sm:p-7 shadow-xs flex flex-col gap-4 border border-slate-200/90">
-                  <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
-                    <ShieldCheck size={20} className="text-slate-900 shrink-0" />
-                    <div>
-                      <h4 className="text-sm sm:text-base font-bold text-slate-900 leading-snug">
-                        Condiciones del Servicio y Puesta Online
-                      </h4>
-                      <p className="text-xs text-slate-500">
-                        Bases operativas, alcance técnico y garantía de desarrollo corporativo.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-2.5 text-xs text-slate-600 leading-relaxed">
-                    {/* CLÁUSULA 1 */}
-                    <div className="p-3.5 sm:p-4 rounded-xl bg-slate-50/90 border border-slate-200/70 flex flex-col md:flex-row md:items-start gap-2.5 md:gap-5">
-                      <div className="flex items-center gap-2.5 md:w-[250px] md:shrink-0 pt-0.5">
-                        <span className="w-5 h-5 rounded-md bg-slate-900 text-white text-[11px] font-bold flex items-center justify-center shrink-0">1</span>
-                        <span className="font-bold text-slate-900 text-xs sm:text-[13px] leading-tight">Cómputo del Plazo de Entrega (48 hs hábiles)</span>
-                      </div>
-                      <p className="text-xs sm:text-[13px] text-slate-600 leading-relaxed md:flex-1">
-                        El plazo garantizado de entrega de 48 horas hábiles comenzará a computarse única y exclusivamente una vez enviado este formulario con la totalidad de los datos obligatorios, enlaces y archivos requeridos en estado completo y validado. El envío de información incompleta o demoras en la provisión de accesos pausará automáticamente el cómputo de los tiempos de entrega.
-                      </p>
-                    </div>
-
-                    {/* CLÁUSULA 2 */}
-                    <div className="p-3.5 sm:p-4 rounded-xl bg-slate-50/90 border border-slate-200/70 flex flex-col md:flex-row md:items-start gap-2.5 md:gap-5">
-                      <div className="flex items-center gap-2.5 md:w-[250px] md:shrink-0 pt-0.5">
-                        <span className="w-5 h-5 rounded-md bg-slate-900 text-white text-[11px] font-bold flex items-center justify-center shrink-0">2</span>
-                        <span className="font-bold text-slate-900 text-xs sm:text-[13px] leading-tight">Propiedad Intelectual y Derechos del Contenido</span>
-                      </div>
-                      <p className="text-xs sm:text-[13px] text-slate-600 leading-relaxed md:flex-1">
-                        El cliente declara bajo juramento ser titular legítimo o contar con las autorizaciones comerciales correspondientes para el uso de todas las marcas, fotografías, logotipos, textos e información provista en este formulario. AG Digital Studio queda expresamente liberado de cualquier reclamo judicial o extrajudicial vinculado a derechos de autor, propiedad intelectual o marcas de terceros.
-                      </p>
-                    </div>
-
-                    {/* CLÁUSULA 3 */}
-                    <div className="p-3.5 sm:p-4 rounded-xl bg-slate-50/90 border border-slate-200/70 flex flex-col md:flex-row md:items-start gap-2.5 md:gap-5">
-                      <div className="flex items-center gap-2.5 md:w-[250px] md:shrink-0 pt-0.5">
-                        <span className="w-5 h-5 rounded-md bg-slate-900 text-white text-[11px] font-bold flex items-center justify-center shrink-0">3</span>
-                        <span className="font-bold text-slate-900 text-xs sm:text-[13px] leading-tight">Estructura Fija, Hosting Cloud y Seguridad SSL</span>
-                      </div>
-                      <p className="text-xs sm:text-[13px] text-slate-600 leading-relaxed md:flex-1">
-                        El desarrollo se adaptará fielmente a la identidad de su marca dentro de la estructura corporativa contratada. No se añadirán ni eliminarán secciones estructurales fuera del alcance del plan. Incluye alojamiento permanente en la infraestructura cloud de ultra velocidad de Vercel con certificado de seguridad SSL HTTPS bonificado, sin costos fijos de servidor.
-                      </p>
-                    </div>
-
-                    {/* CLÁUSULA 4 */}
-                    <div className="p-3.5 sm:p-4 rounded-xl bg-slate-50/90 border border-slate-200/70 flex flex-col md:flex-row md:items-start gap-2.5 md:gap-5">
-                      <div className="flex items-center gap-2.5 md:w-[250px] md:shrink-0 pt-0.5">
-                        <span className="w-5 h-5 rounded-md bg-slate-900 text-white text-[11px] font-bold flex items-center justify-center shrink-0">4</span>
-                        <span className="font-bold text-slate-900 text-xs sm:text-[13px] leading-tight">Deslinde Técnico y Plataformas de Terceros</span>
-                      </div>
-                      <p className="text-xs sm:text-[13px] text-slate-600 leading-relaxed md:flex-1">
-                        El sitio web integra herramientas y servicios de terceros (infraestructura cloud, servidores de Google Sheets / Drive, API y aplicación de WhatsApp, y entidades registradoras de dominios). AG Digital Studio garantiza la correcta vinculación técnica inicial, pero no asume responsabilidad por interrupciones globales, cambios de políticas, bloqueos o caídas ajenas a nuestro control directo.
-                      </p>
-                    </div>
-
-                    {/* CLÁUSULA 5 */}
-                    <div className="p-3.5 sm:p-4 rounded-xl bg-slate-50/90 border border-slate-200/70 flex flex-col md:flex-row md:items-start gap-2.5 md:gap-5">
-                      <div className="flex items-center gap-2.5 md:w-[250px] md:shrink-0 pt-0.5">
-                        <span className="w-5 h-5 rounded-md bg-slate-900 text-white text-[11px] font-bold flex items-center justify-center shrink-0">5</span>
-                        <span className="font-bold text-slate-900 text-xs sm:text-[13px] leading-tight">Previsualización, Revisión y Alcance de Cambios</span>
-                      </div>
-                      <p className="text-xs sm:text-[13px] text-slate-600 leading-relaxed md:flex-1">
-                        Finalizado el desarrollo, se entregará un enlace de previsualización privado para su validación. El servicio incluye una (1) instancia única e integral de ajustes menores sobre textos, imágenes o enlaces antes de la publicación definitiva. Cualquier modificación estructural posterior, rediseño o carga adicional de contenido operará bajo cotización de mantenimiento a demanda.
-                      </p>
-                    </div>
-
-                    {/* CLÁUSULA 6 */}
-                    <div className="p-3.5 sm:p-4 rounded-xl bg-slate-50/90 border border-slate-200/70 flex flex-col md:flex-row md:items-start gap-2.5 md:gap-5">
-                      <div className="flex items-center gap-2.5 md:w-[250px] md:shrink-0 pt-0.5">
-                        <span className="w-5 h-5 rounded-md bg-slate-900 text-white text-[11px] font-bold flex items-center justify-center shrink-0">6</span>
-                        <span className="font-bold text-slate-900 text-xs sm:text-[13px] leading-tight">Dominio, Gestión y Autonomía</span>
-                      </div>
-                      <p className="text-xs sm:text-[13px] text-slate-600 leading-relaxed md:flex-1">
-                        En planes que incluyan gestión de dominio, el registro oficial se realiza por un (1) año calendario. Al finalizar la puesta online, se facilitan o delegan todas las credenciales y accesos administrativos para que el cliente mantenga el control absoluto de su activo digital y su renovación futura, con total autonomía y sin contratos de permanencia.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* CHECKBOX DE ACEPTACIÓN DESTACADO */}
-                  <div className="pt-2">
-                    <label className="flex items-start gap-3 p-4 rounded-2xl bg-slate-900/[0.03] border border-slate-300 hover:border-slate-900 transition-all cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        checked={data.acceptedTerms}
-                        onChange={(e) => handleInputChange('acceptedTerms', e.target.checked)}
-                        className="w-4 h-4 mt-0.5 rounded text-slate-900 border-slate-300 focus:ring-0 shrink-0 cursor-pointer"
-                      />
-                      <div className="text-xs leading-relaxed">
-                        <span className="font-bold text-slate-900 block mb-1">
-                          He leído y acepto los Términos de Contratación, Propiedad de Contenidos y Alcance Técnico.
-                        </span>
-                        <p className="text-slate-500">
-                          “Declaro que los datos y archivos cargados son definitivos y cuento con los derechos de uso del material suministrado. Autorizo a AG Digital Studio a iniciar la producción técnica bajo las condiciones y plazos estipulados.”
+                        <p className="text-xs sm:text-sm text-slate-500">
+                          Estos platos irán al principio de tu menú web como el gancho principal de ventas.
                         </p>
                       </div>
-                    </label>
-                  </div>
-                </div>
 
-                {/* BOTÓN ENVIAR A PRODUCCIÓN / ABONAR Y ENVIAR */}
-                <div className="flex flex-col items-center justify-center gap-2.5 pt-1">
-                  <AnimatePresence mode="wait">
-                    {!data.acceptedTerms ? (
-                      <button
-                        type="button"
-                        disabled
-                        className="w-full sm:w-auto h-14 px-10 bg-slate-100 text-slate-400 font-semibold rounded-2xl text-sm sm:text-base flex items-center justify-center gap-3 border border-slate-200/80 cursor-not-allowed select-none transition-all"
-                      >
-                        <ShieldCheck size={18} className="opacity-40" />
-                        <span>Aceptá los términos para enviar</span>
-                      </button>
-                    ) : (
-                      <motion.button
-                        key="submit-enabled"
-                        type="button"
-                        initial={{ scale: 0.96, opacity: 0.8 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        whileHover={{ scale: 1.01 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={handleSubmit}
-                        disabled={isSubmitting}
-                        className="relative overflow-hidden w-full sm:w-auto h-14 px-8 sm:px-10 bg-slate-950 hover:bg-slate-900 text-white font-bold rounded-2xl text-sm sm:text-base flex items-center justify-center gap-3 cursor-pointer select-none group shadow-lg hover:shadow-xl border border-slate-800 transition-all"
-                      >
-                        {/* HAZ DE LUZ ANIMADO (SHIMMER) */}
-                        <span className="absolute inset-0 -translate-x-full animate-[shimmer_2.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
+                      {/* RENDERIZADO EN GRILLA CON FOTO INCLUIDA */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {data.dishesList
+                          .filter((d) => d.name.trim() !== '')
+                          .map((dish) => {
+                            const isSelected = data.featuredDishIds.includes(dish.id);
+                            const isMaxReached = data.featuredDishIds.length >= 6;
+                            const isDisabled = isMaxReached && !isSelected;
 
-                        {isSubmitting ? (
-                          <>
-                            <Loader2 size={18} className="animate-spin text-white" />
-                            <span>
-                              {DOMAIN_PLANS[data.domainPlan]?.isPaid
-                                ? 'Guardando orden y conectando con Mercado Pago...'
-                                : 'Enviando información...'}
-                            </span>
-                          </>
-                        ) : DOMAIN_PLANS[data.domainPlan]?.isPaid ? (
-                          <>
-                            <MercadoPagoIcon size={22} className="shrink-0" />
-                            <span>Abonar {DOMAIN_PLANS[data.domainPlan]?.priceFormatted} y Enviar a Producción</span>
-                          </>
-                        ) : (
-                          <>
-                            <ShieldCheck size={18} className="text-white" />
-                            <span>Confirmar y Enviar Proyecto a Producción 🚀</span>
-                          </>
-                        )}
-                      </motion.button>
-                    )}
-                  </AnimatePresence>
+                            return (
+                              <div
+                                key={dish.id}
+                                onClick={() => {
+                                  if (!isDisabled) toggleFeaturedDish(dish.id);
+                                }}
+                                className={`p-3.5 sm:p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between gap-3 relative select-none ${
+                                  isSelected
+                                    ? 'border-amber-500 bg-amber-50/70 ring-2 ring-amber-500/20 shadow-xs'
+                                    : isDisabled
+                                    ? 'border-slate-200 bg-slate-50 opacity-50 cursor-not-allowed'
+                                    : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                                }`}
+                              >
+                                <div className="flex items-center gap-3 min-w-0">
+                                  {dish.imageUrl ? (
+                                    <img
+                                      src={dish.imageUrl}
+                                      alt={dish.name}
+                                      className="w-12 h-12 rounded-xl object-cover shrink-0 border border-slate-200"
+                                    />
+                                  ) : (
+                                    <div className="w-12 h-12 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center shrink-0 text-xs font-bold">
+                                      🍴
+                                    </div>
+                                  )}
+                                  <div className="flex flex-col min-w-0">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                      {dish.categoryName}
+                                    </span>
+                                    <span className="font-extrabold text-sm text-slate-900 truncate">
+                                      {dish.name}
+                                    </span>
+                                    <span className="font-black text-xs text-slate-900 mt-0.5">
+                                      {dish.price}
+                                    </span>
+                                  </div>
+                                </div>
 
-                  {data.acceptedTerms && DOMAIN_PLANS[data.domainPlan]?.isPaid && (
-                    <div className="flex items-center justify-center gap-2 text-xs text-slate-500 pt-0.5 text-center">
-                      <MercadoPagoIcon size={14} className="shrink-0" />
-                      <span>Redirección oficial a Mercado Pago · Se abona y envía a producción en el mismo botón</span>
-                    </div>
+                                <div
+                                  className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center shrink-0 transition-colors ${
+                                    isSelected
+                                      ? 'border-amber-500 bg-amber-500 text-white'
+                                      : 'border-slate-300 bg-white'
+                                  }`}
+                                >
+                                  {isSelected && <Check size={14} strokeWidth={3} />}
+                                </div>
+                              </div>
+                            );
+                          })}
+                      </div>
+
+                      {data.featuredDishIds.length === 6 && (
+                        <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 font-semibold text-center">
+                          ¡Listo! Ya seleccionaste los 6 platos estrella para la portada. Si querés cambiar alguno, desmarcá uno primero.
+                        </div>
+                      )}
+
+                      <div className="pt-2 flex items-center justify-between">
+                        <button
+                          type="button"
+                          onClick={() => setCatalogSubStep(1)}
+                          className="h-12 px-5 rounded-2xl border border-slate-200 hover:bg-slate-50 font-semibold text-xs text-slate-700 flex items-center gap-2 transition-all cursor-pointer"
+                        >
+                          <ArrowLeft size={15} />
+                          <span>Volver a Platos</span>
+                        </button>
+                      </div>
+                    </motion.div>
                   )}
                 </div>
-              </div>
-            )}
+              )}
 
-          </motion.div>
-        </AnimatePresence>
-      </main>
+              {/* ============================================================ */}
+              {/* PASO 7: LOGÍSTICA Y ENVÍOS (SOLO DELIVERY Y RETIRO POR LOCAL) */}
+              {/* ============================================================ */}
+              {currentStep.id === 'LOGISTICS_WHATSAPP' && (
+                <div className="flex flex-col gap-6 py-2">
+                  <div className="flex flex-col gap-2">
+                    <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
+                      Paso 07 · Logística y Envíos
+                    </span>
+                    <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-[1.15]">
+                      Recepción de Pedidos y Envíos
+                    </h2>
+                    <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
+                      Configurá el número al que tus clientes enviarán los pedidos y las modalidades de entrega habilitadas.
+                    </p>
+                  </div>
+
+                  <div className="glass-panel rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col gap-6">
+                    {/* INPUT 1: WHATSAPP REQUERIDO */}
+                    <div className="flex flex-col gap-2">
+                      <label className="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wide">
+                        Número de WhatsApp Receptor (Requerido) *
+                      </label>
+                      <div className="relative flex items-center">
+                        <div className="absolute left-4 flex items-center gap-1.5 text-slate-500 font-bold text-sm pointer-events-none">
+                          <WhatsAppIcon size={16} className="text-[#25D366]" />
+                        </div>
+                        <input
+                          type="tel"
+                          value={data.whatsappNumber}
+                          onChange={(e) => handleInputChange('whatsappNumber', e.target.value)}
+                          placeholder="Ej: +54 9 11..."
+                          className="w-full h-14 bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 rounded-2xl pl-11 pr-5 text-base font-bold text-slate-900 outline-none transition-all shadow-2xs"
+                          autoFocus
+                        />
+                      </div>
+                      <span className="text-xs text-slate-500 ml-1">
+                        Formato internacional con código de área (ej: <strong>+54 9 11 1234 5678</strong>). Los pedidos se enviarán preformateados a esta línea.
+                      </span>
+                    </div>
+
+                    {/* CHECKBOXES OPCIONES DE ENTREGA: SOLO DELIVERY Y RETIRO POR LOCAL */}
+                    <div className="flex flex-col gap-3 pt-2 border-t border-slate-100">
+                      <label className="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wide">
+                        Opciones de Entrega Habilitadas *
+                      </label>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {/* DELIVERY */}
+                        <label
+                          onClick={() =>
+                            setData((prev) => ({
+                              ...prev,
+                              deliveryMethods: {
+                                ...prev.deliveryMethods,
+                                delivery: !prev.deliveryMethods.delivery
+                              }
+                            }))
+                          }
+                          className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between select-none ${
+                            data.deliveryMethods.delivery
+                              ? 'border-slate-900 bg-slate-900/[0.04] ring-2 ring-slate-900'
+                              : 'border-slate-200 bg-white hover:bg-slate-50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+                              <Bike size={20} />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="font-extrabold text-sm text-slate-900">Delivery</span>
+                              <span className="text-xs text-slate-500">Envíos a domicilio</span>
+                            </div>
+                          </div>
+                          <div className={`w-5 h-5 rounded-lg border-2 flex items-center justify-center shrink-0 ${data.deliveryMethods.delivery ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300'}`}>
+                            {data.deliveryMethods.delivery && <Check size={12} strokeWidth={3} />}
+                          </div>
+                        </label>
+
+                        {/* RETIRO POR LOCAL */}
+                        <label
+                          onClick={() =>
+                            setData((prev) => ({
+                              ...prev,
+                              deliveryMethods: {
+                                ...prev.deliveryMethods,
+                                takeaway: !prev.deliveryMethods.takeaway
+                              }
+                            }))
+                          }
+                          className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between select-none ${
+                            data.deliveryMethods.takeaway
+                              ? 'border-slate-900 bg-slate-900/[0.04] ring-2 ring-slate-900'
+                              : 'border-slate-200 bg-white hover:bg-slate-50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                              <Store size={20} />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="font-extrabold text-sm text-slate-900">Retiro por Local</span>
+                              <span className="text-xs text-slate-500">Take away / Pick up en mostrador</span>
+                            </div>
+                          </div>
+                          <div className={`w-5 h-5 rounded-lg border-2 flex items-center justify-center shrink-0 ${data.deliveryMethods.takeaway ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300'}`}>
+                            {data.deliveryMethods.takeaway && <Check size={12} strokeWidth={3} />}
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* COMPONENTE ZONAS DE ENVÍO */}
+                    {data.deliveryMethods.delivery && (
+                      <div className="flex flex-col gap-3 pt-3 border-t border-slate-100">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wide block">
+                              Zonas de Envío
+                            </span>
+                            <span className="text-xs text-slate-500">
+                              Agregá las zonas o barrios y su costo de envío correspondiente.
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={addDeliveryZone}
+                            className="px-3.5 py-1.5 rounded-xl bg-slate-950 hover:bg-slate-900 text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                          >
+                            <Plus size={14} />
+                            <span>+ Agregar Zona de Envío</span>
+                          </button>
+                        </div>
+
+                        <div className="flex flex-col gap-2.5">
+                          {data.deliveryZones.map((zone, idx) => (
+                            <div
+                              key={zone.id || idx}
+                              className="flex flex-col sm:flex-row sm:items-center gap-2 p-2.5 rounded-2xl bg-slate-50 border border-slate-200"
+                            >
+                              <input
+                                type="text"
+                                value={zone.name}
+                                onChange={(e) => updateDeliveryZone(idx, 'name', e.target.value)}
+                                placeholder="Ej: Palermo, San Isidro, Ramos Mejía"
+                                className="w-full flex-1 h-11 bg-white border border-slate-200 rounded-xl px-3 text-base sm:text-sm font-semibold text-slate-900 focus:border-slate-900 outline-none"
+                              />
+                              <div className="flex items-center gap-2 w-full sm:w-auto">
+                                <input
+                                  type="text"
+                                  value={zone.cost}
+                                  onChange={(e) => updateDeliveryZone(idx, 'cost', e.target.value)}
+                                  placeholder="$2.500"
+                                  className="flex-1 sm:w-32 h-11 bg-white border border-slate-200 rounded-xl px-3 text-base sm:text-sm font-bold text-slate-900 focus:border-slate-900 outline-none"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => removeDeliveryZone(idx)}
+                                  className="w-11 h-11 rounded-xl bg-white hover:bg-red-50 text-slate-400 hover:text-red-600 border border-slate-200 flex items-center justify-center transition-all cursor-pointer shrink-0"
+                                  title="Eliminar fila de zona"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* ============================================================ */}
+              {/* PASO 8: MEDIOS DE COBRO (INPUTS PERFECTAMENTE ALINEADOS) */}
+              {/* ============================================================ */}
+              {currentStep.id === 'PAYMENT_METHODS' && (
+                <div className="flex flex-col gap-6 py-2">
+                  <div className="flex flex-col gap-2">
+                    <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
+                      Paso 08 · Checkout & Cobros
+                    </span>
+                    <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-[1.15]">
+                      ¿Cómo te van a pagar tus clientes?
+                    </h2>
+                    <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
+                      Ingresá los datos de la cuenta a la que el cliente debe transferir.
+                    </p>
+                  </div>
+
+                  <div className="glass-panel rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col gap-5">
+                    {/* INPUT 1: CBU / CVU / ALIAS */}
+                    <div className="flex flex-col gap-2">
+                      <label className="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wide">
+                        CBU / CVU / Alias *
+                      </label>
+                      <input
+                        type="text"
+                        value={data.paymentCbuAlias}
+                        onChange={(e) => handleInputChange('paymentCbuAlias', e.target.value)}
+                        placeholder="Ej: burger.casanova.mp o 00000031000..."
+                        className="w-full h-14 bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 rounded-2xl px-5 text-base font-bold text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-2xs font-mono"
+                        autoFocus
+                      />
+                    </div>
+
+                    {/* INPUTS 2 Y 3: PERFECTAMENTE ALINEADOS HORIZONTALMENTE */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* TITULAR DE LA CUENTA */}
+                      <div className="flex flex-col gap-2">
+                        <label className="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wide">
+                          Titular de la cuenta bancaria *
+                        </label>
+                        <input
+                          type="text"
+                          value={data.paymentAccountHolder}
+                          onChange={(e) => handleInputChange('paymentAccountHolder', e.target.value)}
+                          placeholder="Ej: Juan Pérez o Burger SRL"
+                          className="w-full h-14 bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white rounded-2xl px-4 text-base sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-2xs"
+                        />
+                      </div>
+
+                      {/* BANCO O BILLETERA VIRTUAL */}
+                      <div className="flex flex-col gap-2">
+                        <label className="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wide">
+                          Banco o Billetera Virtual *
+                        </label>
+                        <input
+                          type="text"
+                          value={data.paymentBank}
+                          onChange={(e) => handleInputChange('paymentBank', e.target.value)}
+                          placeholder="Ej: Mercado Pago, Galicia, Brubank"
+                          className="w-full h-14 bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white rounded-2xl px-4 text-base sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-2xs"
+                        />
+                      </div>
+                    </div>
+
+                    {/* TOGGLE / SWITCH: ¿ACEPTÁS PAGO EN EFECTIVO? */}
+                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                      <div className="flex flex-col">
+                        <span className="font-extrabold text-sm text-slate-900">
+                          ¿Aceptás pago en efectivo al momento de la entrega/retiro?
+                        </span>
+                        <span className="text-xs text-slate-500">
+                          {data.acceptsCash
+                            ? 'Sí, el cliente podrá optar por abonar en efectivo al recibir el pedido.'
+                            : 'No, únicamente pedidos abonados previamente por transferencia con comprobante.'}
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleInputChange('acceptsCash', !data.acceptsCash)}
+                        className={`relative inline-flex h-8 w-14 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                          data.acceptsCash ? 'bg-slate-950' : 'bg-slate-300'
+                        }`}
+                      >
+                        <span
+                          className={`pointer-events-none inline-block h-7 w-7 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                            data.acceptsCash ? 'translate-x-6' : 'translate-x-0'
+                          }`}
+                        />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ============================================================ */}
+              {/* PASO 9: REVISIÓN FINAL Y PUESTA EN MARCHA */}
+              {/* ============================================================ */}
+              {currentStep.id === 'CLOSING_TERMS' && (
+                <div className="flex flex-col gap-6 py-2">
+                  <div className="flex flex-col gap-2">
+                    <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
+                      Paso 09 · Confirmación & Cierre
+                    </span>
+                    <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-[1.15]">
+                      Revisión Final y Puesta en Marcha
+                    </h2>
+                    <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
+                      Verificá los datos de tu Menú Digital antes de enviarlos a producción técnica.
+                    </p>
+                  </div>
+
+                  {/* RESUMEN VISUAL EN 4 CARDS */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* CARD 1: IDENTIDAD */}
+                    <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex flex-col justify-between">
+                      <div className="flex items-center justify-between pb-2 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase">
+                        <span>01 · Identidad Visual</span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                      </div>
+                      <div className="flex flex-col gap-1.5 text-xs text-slate-600 pt-2">
+                        <div>
+                          <strong className="text-slate-900 text-sm block">{data.restaurantName}</strong>
+                          <span className="text-slate-400 text-[11px]">ML: {data.mercadoLibreUser}</span>
+                        </div>
+                        <div className="flex items-center gap-2 pt-1">
+                          <span
+                            className="w-3.5 h-3.5 rounded-full border border-black/10 shadow-2xs"
+                            style={{ backgroundColor: primaryColorCss }}
+                          />
+                          <span className="font-semibold text-slate-700">
+                            {data.themeTone === 'dark' ? 'Tema Oscuro' : 'Tema Claro'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* CARD 2: PLAN DE GESTIÓN */}
+                    <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex flex-col justify-between">
+                      <div className="flex items-center justify-between pb-2 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase">
+                        <span>02 · Plan Elegido</span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                      </div>
+                      <div className="flex flex-col gap-1 text-xs text-slate-600 pt-2">
+                        <strong className="text-slate-900 text-sm">
+                          {data.managementPlan === 'vip' ? 'Mantenimiento VIP Llave en Mano' : 'Plan Autogestionable ($0)'}
+                        </strong>
+                        {data.managementPlan === 'vip' && (
+                          <span className="font-semibold text-amber-700">
+                            Ciclo {data.billingCycle.toUpperCase()} {data.billingCycle === 'anual' && '· Reintegro 100% de $40.000'}
+                          </span>
+                        )}
+                        <span className="text-slate-400 text-[11px]">Soporte y configuración incluida</span>
+                      </div>
+                    </div>
+
+                    {/* CARD 3: MENÚ Y CATÁLOGO */}
+                    <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex flex-col justify-between">
+                      <div className="flex items-center justify-between pb-2 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase">
+                        <span>03 · Menú & Productos</span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                      </div>
+                      <div className="flex flex-col gap-1 text-xs text-slate-600 pt-2">
+                        <strong className="text-slate-900 truncate">
+                          {data.dishesList.filter((d) => d.name.trim() !== '').length} platos cargados
+                        </strong>
+                        <span className="text-slate-500">
+                          {data.categoriesList.length} categorías definidas ({data.featuredDishIds.length} platos estrella)
+                        </span>
+                        <span className="text-emerald-700 font-semibold text-[11px]">
+                          Estructura y catálogo validados
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* CARD 4: LOGÍSTICA & PAGOS */}
+                    <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex flex-col justify-between">
+                      <div className="flex items-center justify-between pb-2 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase">
+                        <span>04 · Pedidos & Pagos</span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                      </div>
+                      <div className="flex flex-col gap-1 text-xs text-slate-600 pt-2">
+                        <strong className="text-slate-900">{data.whatsappNumber}</strong>
+                        <span className="text-slate-500">
+                          Alias: {data.paymentCbuAlias} ({data.paymentBank})
+                        </span>
+                        <span className="text-slate-500 text-[11px]">
+                          Efectivo: {data.acceptsCash ? 'Acepta en entrega' : 'Solo transferencias'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* BLOQUE DE CONTRATO Y BASES OPERATIVAS */}
+                  <div className="glass-panel rounded-3xl p-5 sm:p-7 shadow-xs flex flex-col gap-4 border border-slate-200/90">
+                    <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
+                      <ShieldCheck size={20} className="text-slate-900 shrink-0" />
+                      <div>
+                        <h4 className="text-sm sm:text-base font-bold text-slate-900 leading-snug">
+                          Condiciones del Servicio y Puesta Online del Menú
+                        </h4>
+                        <p className="text-xs text-slate-500">
+                          Bases operativas, alcance técnico y garantía de desarrollo gastronómico.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2.5 text-xs text-slate-600 leading-relaxed">
+                      {/* CLÁUSULA 1 */}
+                      <div className="p-3.5 sm:p-4 rounded-xl bg-slate-50/90 border border-slate-200/70 flex flex-col md:flex-row md:items-start gap-2.5 md:gap-5">
+                        <div className="flex items-center gap-2.5 md:w-[250px] md:shrink-0 pt-0.5">
+                          <span className="w-5 h-5 rounded-md bg-slate-900 text-white text-[11px] font-bold flex items-center justify-center shrink-0">1</span>
+                          <span className="font-bold text-slate-900 text-xs sm:text-[13px] leading-tight">Cómputo del Plazo de Entrega</span>
+                        </div>
+                        <p className="text-xs sm:text-[13px] text-slate-600 leading-relaxed md:flex-1">
+                          El plazo de entrega comenzará a computarse una vez enviado este formulario con los datos obligatorios y la lista de precios válida. Nuestro equipo realizará la diagramación y digitalización inicial para que tu Menú quede listo para operar.
+                        </p>
+                      </div>
+
+                      {/* CLÁUSULA 2 */}
+                      <div className="p-3.5 sm:p-4 rounded-xl bg-slate-50/90 border border-slate-200/70 flex flex-col md:flex-row md:items-start gap-2.5 md:gap-5">
+                        <div className="flex items-center gap-2.5 md:w-[250px] md:shrink-0 pt-0.5">
+                          <span className="w-5 h-5 rounded-md bg-slate-900 text-white text-[11px] font-bold flex items-center justify-center shrink-0">2</span>
+                          <span className="font-bold text-slate-900 text-xs sm:text-[13px] leading-tight">Propiedad Intelectual y Precios</span>
+                        </div>
+                        <p className="text-xs sm:text-[13px] text-slate-600 leading-relaxed md:flex-1">
+                          El cliente declara ser titular o contar con autorización comercial para el uso de las marcas, fotos y nombres de platos cargados. Los precios y descripciones exhibidos son de exclusiva responsabilidad del local gastronómico.
+                        </p>
+                      </div>
+
+                      {/* CLÁUSULA 3 */}
+                      <div className="p-3.5 sm:p-4 rounded-xl bg-slate-50/90 border border-slate-200/70 flex flex-col md:flex-row md:items-start gap-2.5 md:gap-5">
+                        <div className="flex items-center gap-2.5 md:w-[250px] md:shrink-0 pt-0.5">
+                          <span className="w-5 h-5 rounded-md bg-slate-900 text-white text-[11px] font-bold flex items-center justify-center shrink-0">3</span>
+                          <span className="font-bold text-slate-900 text-xs sm:text-[13px] leading-tight">Estructura del Menú Inteligente y Hosting SSL</span>
+                        </div>
+                        <p className="text-xs sm:text-[13px] text-slate-600 leading-relaxed md:flex-1">
+                          El desarrollo se entrega optimizado para dispositivos móviles, con enlace directo de pedidos a WhatsApp, almacenamiento cloud de alta disponibilidad y certificado de seguridad SSL HTTPS bonificado.
+                        </p>
+                      </div>
+
+                      {/* CLÁUSULA 4 */}
+                      <div className="p-3.5 sm:p-4 rounded-xl bg-slate-50/90 border border-slate-200/70 flex flex-col md:flex-row md:items-start gap-2.5 md:gap-5">
+                        <div className="flex items-center gap-2.5 md:w-[250px] md:shrink-0 pt-0.5">
+                          <span className="w-5 h-5 rounded-md bg-slate-900 text-white text-[11px] font-bold flex items-center justify-center shrink-0">4</span>
+                          <span className="font-bold text-slate-900 text-xs sm:text-[13px] leading-tight">Deslinde Técnico y Terceros</span>
+                        </div>
+                        <p className="text-xs sm:text-[13px] text-slate-600 leading-relaxed md:flex-1">
+                          El sistema se enlaza con la API y aplicación de WhatsApp y plataformas cloud. AG Digital Studio garantiza la correcta vinculación técnica inicial, deslindando responsabilidad por fallas globales o caídas externas de Meta.
+                        </p>
+                      </div>
+
+                      {/* CLÁUSULA 5 */}
+                      <div className="p-3.5 sm:p-4 rounded-xl bg-slate-50/90 border border-slate-200/70 flex flex-col md:flex-row md:items-start gap-2.5 md:gap-5">
+                        <div className="flex items-center gap-2.5 md:w-[250px] md:shrink-0 pt-0.5">
+                          <span className="w-5 h-5 rounded-md bg-slate-900 text-white text-[11px] font-bold flex items-center justify-center shrink-0">5</span>
+                          <span className="font-bold text-slate-900 text-xs sm:text-[13px] leading-tight">Previsualización y Prueba</span>
+                        </div>
+                        <p className="text-xs sm:text-[13px] text-slate-600 leading-relaxed md:flex-1">
+                          Finalizada la carga inicial se entregará un enlace privado de prueba para validar que los platos, precios y enlaces a WhatsApp operen a la perfección antes de la difusión al público comensal.
+                        </p>
+                      </div>
+
+                      {/* CLÁUSULA 6 */}
+                      <div className="p-3.5 sm:p-4 rounded-xl bg-slate-50/90 border border-slate-200/70 flex flex-col md:flex-row md:items-start gap-2.5 md:gap-5">
+                        <div className="flex items-center gap-2.5 md:w-[250px] md:shrink-0 pt-0.5">
+                          <span className="w-5 h-5 rounded-md bg-slate-900 text-white text-[11px] font-bold flex items-center justify-center shrink-0">6</span>
+                          <span className="font-bold text-slate-900 text-xs sm:text-[13px] leading-tight">Modelo de Gestión y Autonomía</span>
+                        </div>
+                        <p className="text-xs sm:text-[13px] text-slate-600 leading-relaxed md:flex-1">
+                          En el Plan Autogestionable se facilita el acceso al panel para autogestionar precios. En el Plan Llave en Mano VIP, el equipo técnico se ocupa de realizar los cambios solicitados por WhatsApp según las condiciones del ciclo contratado.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* CHECKBOX DE ACEPTACIÓN DESTACADO */}
+                    <div className="pt-2">
+                      <label className="flex items-start gap-3 p-4 rounded-2xl bg-slate-900/[0.03] border border-slate-300 hover:border-slate-900 transition-all cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={data.acceptedTerms}
+                          onChange={(e) => handleInputChange('acceptedTerms', e.target.checked)}
+                          className="w-4 h-4 mt-0.5 rounded text-slate-900 border-slate-300 focus:ring-0 shrink-0 cursor-pointer"
+                        />
+                        <div className="text-xs leading-relaxed">
+                          <span className="font-bold text-slate-900 block mb-1">
+                            He leído y acepto los Términos de Contratación, Propiedad de Contenidos y Alcance Técnico.
+                          </span>
+                          <p className="text-slate-500">
+                            “Declaro que los datos y archivos cargados son definitivos y cuento con los derechos de uso del material suministrado. Autorizo a AG Digital Studio a iniciar la producción técnica bajo las condiciones y plazos estipulados.”
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* BOTÓN ENVIAR A PRODUCCIÓN */}
+                  <div className="flex flex-col items-center justify-center gap-2.5 pt-1">
+                    <AnimatePresence mode="wait">
+                      {!data.acceptedTerms ? (
+                        <button
+                          type="button"
+                          disabled
+                          className="w-full sm:w-auto h-14 px-10 bg-slate-100 text-slate-400 font-semibold rounded-2xl text-sm sm:text-base flex items-center justify-center gap-3 border border-slate-200/80 cursor-not-allowed select-none transition-all"
+                        >
+                          <ShieldCheck size={18} className="opacity-40" />
+                          <span>Aceptá los términos para enviar</span>
+                        </button>
+                      ) : (
+                        <motion.button
+                          key="submit-enabled"
+                          type="button"
+                          initial={{ scale: 0.96, opacity: 0.8 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          whileHover={{ scale: 1.01 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={handleSubmit}
+                          disabled={isSubmitting}
+                          className="relative overflow-hidden w-full sm:w-auto h-14 px-8 sm:px-10 bg-slate-950 hover:bg-slate-900 text-white font-bold rounded-2xl text-sm sm:text-base flex items-center justify-center gap-3 cursor-pointer select-none group shadow-lg hover:shadow-xl border border-slate-800 transition-all"
+                        >
+                          <span className="absolute inset-0 -translate-x-full animate-[shimmer_2.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
+
+                          {isSubmitting ? (
+                            <>
+                              <Loader2 size={18} className="animate-spin text-white" />
+                              <span>Enviando información y sincronizando base de datos...</span>
+                            </>
+                          ) : (
+                            <>
+                              <ShieldCheck size={18} className="text-white" />
+                              <span>Confirmar y Enviar Menú a Producción 🚀</span>
+                            </>
+                          )}
+                        </motion.button>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </main>
       )}
 
-      {/* INDICADOR FLOTANTE ANIMADO "CONTINÚA ABAJO" (SIN VERDE) */}
-      <AnimatePresence>
-        {!submittedProject && showScrollPrompt && currentStep.id !== 'WELCOME' && (
-          <motion.button
-            type="button"
-            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            onClick={() => window.scrollBy({ top: 350, behavior: 'smooth' })}
-            className="fixed bottom-22 sm:bottom-24 left-1/2 -translate-x-1/2 z-40 bg-slate-900/95 hover:bg-slate-950 text-white text-xs font-semibold px-4 py-2 rounded-full shadow-xl border border-slate-700/60 flex items-center gap-2 cursor-pointer backdrop-blur-md active:scale-95 transition-all"
-          >
-            <span>Continúa abajo</span>
-            <motion.span
-              animate={{ y: [0, 3, 0] }}
-              transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
-            >
-              <ArrowDown size={14} className="text-white" />
-            </motion.span>
-          </motion.button>
-        )}
-      </AnimatePresence>
-
-      {/* BARRA INFERIOR DE ACCIÓN FLOTANTE (SIN VERDE) */}
+      {/* BARRA INFERIOR DE ACCIÓN FLOTANTE */}
       {!submittedProject && currentStep.id !== 'WELCOME' && (
-        <div className="fixed bottom-0 sm:bottom-5 inset-x-0 z-40 px-3 py-3 sm:px-4 pointer-events-none flex justify-center">
-          <div className={`pointer-events-auto w-full ${currentStep.id === 'DOMAIN_PLAN' ? 'max-w-4xl' : 'max-w-2xl'} bg-white/95 sm:bg-white/90 backdrop-blur-2xl border-t sm:border border-slate-200/90 sm:rounded-2xl shadow-[0_-8px_30px_rgba(15,23,42,0.08)] sm:shadow-[0_20px_50px_-10px_rgba(15,23,42,0.16),0_0_0_1px_rgba(255,255,255,0.8)_inset] p-2 sm:p-2.5 flex items-center justify-between gap-2.5 sm:gap-3 transition-all duration-300`}>
-            
-            {/* BOTÓN ANTERIOR */}
+        <div className="fixed bottom-0 sm:bottom-5 inset-x-0 z-40 px-3 py-2 sm:py-3 sm:px-4 pointer-events-none flex justify-center pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          <div className="pointer-events-auto w-full max-w-2xl bg-white/95 sm:bg-white/90 backdrop-blur-2xl border-t sm:border border-slate-200/90 sm:rounded-2xl shadow-[0_-8px_30px_rgba(15,23,42,0.08)] sm:shadow-[0_20px_50px_-10px_rgba(15,23,42,0.16),0_0_0_1px_rgba(255,255,255,0.8)_inset] p-2 sm:p-2.5 flex items-center justify-between gap-2 sm:gap-3 transition-all duration-300">
+            {/* BOTÓN ANTERIOR (FUNCIONAL EN TODOS LOS PASOS SIN PERDER ESTADO) */}
             <button
               type="button"
               onClick={prevStep}
-              className="h-12 sm:h-12.5 px-4 sm:px-5 rounded-xl bg-white sm:bg-transparent border border-slate-200/80 sm:border-transparent hover:border-slate-300 sm:hover:bg-slate-100 text-slate-700 hover:text-slate-950 active:scale-95 transition-all cursor-pointer font-semibold text-xs sm:text-sm flex items-center gap-2 shrink-0 shadow-2xs sm:shadow-none"
-              title="Paso anterior"
+              disabled={currentStepIndex === 0 && (currentStep.id !== 'CATALOG_SETUP' || catalogSubStep === 0)}
+              className={`h-11 sm:h-12.5 px-3 sm:px-5 rounded-xl border font-semibold text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 shrink-0 transition-all ${
+                currentStepIndex === 0 && (currentStep.id !== 'CATALOG_SETUP' || catalogSubStep === 0)
+                  ? 'opacity-30 border-transparent text-slate-400 cursor-not-allowed'
+                  : 'bg-white sm:bg-transparent border-slate-200/80 sm:border-transparent hover:border-slate-300 sm:hover:bg-slate-100 text-slate-700 hover:text-slate-950 active:scale-95 cursor-pointer shadow-2xs sm:shadow-none'
+              }`}
+              title="Volver atrás"
             >
-              <ArrowLeft size={16} />
-              <span className="hidden xs:inline">Anterior</span>
+              <ArrowLeft size={15} />
+              <span className="text-xs sm:text-sm font-semibold">Volver</span>
             </button>
 
-            {/* INDICADOR CENTRAL DEL PASO (SOLO DESKTOP / TABLET) */}
+            {/* INDICADOR CENTRAL DEL PASO */}
             <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200/60 select-none">
               <span className="w-1.5 h-1.5 rounded-full bg-slate-900" />
               <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">
-                Paso {currentStepIndex} de {STEPS.length - 1}
+                Paso {currentStep.stepNumber} de {totalFormSteps}
               </span>
               <span className="text-slate-300">·</span>
-              <span className="text-xs font-semibold text-slate-800 max-w-[130px] truncate">
+              <span className="text-xs font-semibold text-slate-800 max-w-[150px] truncate">
                 {currentStep.title}
               </span>
             </div>
 
-            {/* BOTÓN CONTINUAR (SIN VERDE) */}
-            {currentStep.id !== 'FINAL_REVIEW' && (() => {
+            {/* BOTÓN CONTINUAR */}
+            {currentStep.id !== 'CLOSING_TERMS' && (() => {
               const disabled = isNextDisabled();
-              const nextLabel = 
-                currentStep.id === 'BRAND_STYLE' && brandSubStep === 0 ? 'Continuar a Tipografía' :
-                currentStep.id === 'BRAND_STYLE' && brandSubStep === 1 ? 'Continuar a Tono Visual' :
-                currentStep.id === 'DOMAIN_PLAN' ? 'Continuar a Preferencias' :
-                'Continuar';
+              const nextButtonText =
+                currentStep.id === 'CATALOG_SETUP'
+                  ? catalogSubStep === 0
+                    ? 'A Platos (7B)'
+                    : catalogSubStep === 1
+                    ? 'A Destacados (7C)'
+                    : 'A Logística'
+                  : 'Continuar';
 
               return (
                 <div className="flex-1 sm:flex-initial">
@@ -2280,7 +2465,7 @@ export default function Wizard() {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         disabled
-                        className="w-full sm:min-w-[210px] h-12 sm:h-12.5 px-5 sm:px-6 rounded-xl font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 bg-slate-100 text-slate-400 border border-slate-200/80 cursor-not-allowed select-none transition-all"
+                        className="w-full sm:min-w-[190px] h-11 sm:h-12.5 px-4 sm:px-6 rounded-xl font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 bg-slate-100 text-slate-400 border border-slate-200/80 cursor-not-allowed select-none transition-all"
                       >
                         <span className="truncate">Completá este paso</span>
                         <ArrowRight size={15} className="shrink-0 opacity-40" />
@@ -2294,33 +2479,26 @@ export default function Wizard() {
                         whileHover={{ scale: 1.01 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={nextStep}
-                        className="relative overflow-hidden w-full sm:min-w-[210px] h-12 sm:h-12.5 px-5 sm:px-7 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 bg-slate-950 hover:bg-slate-900 text-white cursor-pointer select-none group shadow-lg hover:shadow-xl border border-slate-800 transition-all"
+                        className="relative overflow-hidden w-full sm:min-w-[190px] h-11 sm:h-12.5 px-4 sm:px-7 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 bg-slate-950 hover:bg-slate-900 text-white cursor-pointer select-none group shadow-lg hover:shadow-xl border border-slate-800 transition-all"
                       >
-                        {/* HAZ DE LUZ ANIMADO (SHIMMER) */}
                         <span className="absolute inset-0 -translate-x-full animate-[shimmer_2.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
-
-                        <span className="truncate">{nextLabel}</span>
-
-                        <ArrowRight 
-                          size={16} 
-                          className="shrink-0 transition-transform duration-200 group-hover:translate-x-1" 
-                        />
+                        <span className="truncate">{nextButtonText}</span>
+                        <ArrowRight size={16} className="shrink-0 transition-transform duration-200 group-hover:translate-x-1" />
                       </motion.button>
                     )}
                   </AnimatePresence>
                 </div>
               );
             })()}
-
           </div>
         </div>
       )}
 
-      {/* BOTÓN FLOTANTE DE ASISTENCIA POR WHATSAPP (ACTIVO EN TODO EL PROCESO) */}
+      {/* BOTÓN FLOTANTE DE ASISTENCIA POR WHATSAPP */}
       <FloatingWhatsAppSupport
         currentStepTitle={currentStep?.title}
-        companyName={data.companyName}
-        stepNumber={currentStepIndex}
+        restaurantName={data.restaurantName}
+        stepNumber={currentStep?.stepNumber > 0 ? currentStep.stepNumber : undefined}
       />
     </div>
   );

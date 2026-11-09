@@ -1,106 +1,86 @@
-export interface ServiceItem {
+export interface DishItem {
   id: string;
-  title: string;
-  description: string;
-  iconHint: string;
-}
-
-export interface MetricItem {
-  label: string;
-  value: string;
-}
-
-export interface TestimonialItem {
+  categoryName: string;
   name: string;
-  company?: string;
-  text: string;
+  price: string;
+  description?: string;
+  imageUrl?: string;
 }
 
-export interface FaqItem {
-  question: string;
-  answer: string;
+export interface DeliveryZone {
+  id: string;
+  name: string;
+  cost: string;
 }
 
-export interface CorporateFormData {
-  // Vinculación con compra
+export type ManagementPlan = 'autogestionable' | 'vip';
+export type BillingCycle = 'mensual' | 'trimestral' | 'semestral' | 'anual';
+export type ThemeTone = 'light' | 'dark';
+
+export interface MenuFormData {
+  // PASO 1: Validación de Compra
   mercadoLibreUser: string;
-  templateSelected: 'T3';
 
-  // 1. Identidad Corporativa
-  companyName: string;
-  slogan: string;
+  // PASO 2: Identidad del Local
+  restaurantName: string;
+
+  // PASO 3: Carga de Logotipo
   logoUrl: string;
   noLogo: boolean;
+
+  // PASO 4: Estilo Visual
   primaryColor: string;
-  secondaryColor: string;
-  typography: 'Sans Serif' | 'Serif' | 'Otra' | '';
-  customTypography: string;
-  backgroundTone: 'Tonos Claros (Luminoso, limpio y clásico)' | 'Tonos Oscuros (Elegante, premium y moderno)' | 'A criterio del diseñador (Confío en ustedes)' | '';
-  heroTitle: string;
-  heroImage: string;
-  wantsMobileHero: boolean;
-  heroImageMobile: string;
+  themeTone: ThemeTone;
 
-  // 2. Sobre la Empresa y Métricas
-  aboutText: string;
-  aboutImage: string;
-  strengths: string; // Misión / Propuesta de valor / Por qué elegirnos
-  stats: MetricItem[];
+  // PASO 5: Elección de Plan de Gestión
+  managementPlan: ManagementPlan;
+  billingCycle: BillingCycle;
 
-  // 3. Cartera de Servicios y Soluciones
-  services: ServiceItem[];
-  faqs: FaqItem[];
+  // PASO 6: Creador de Catálogo (Lógica Iterativa)
+  categoriesList: string[];
+  dishesList: DishItem[];
+  featuredDishIds: string[];
 
-  // 4. Clientes y Testimonios
-  useGoogleMapsReviews: boolean;
-  googleMapsLink: string;
-  reviewsList: TestimonialItem[];
+  // PASO 7: Logística y Envíos (Solo Delivery y Retiro por Local)
+  whatsappNumber: string;
+  deliveryMethods: {
+    delivery: boolean;
+    takeaway: boolean;
+  };
+  deliveryZones: DeliveryZone[];
 
-  // 5. Contacto Corporativo
-  whatsapp: string;
-  corporateEmail: string;
-  linkedin: string;
-  instagram: string;
-  facebook: string;
-  socialLinks?: string; // Redes adicionales opcionales
-  address: string;
+  // PASO 8: Medios de Cobro (Checkout)
+  paymentCbuAlias: string;
+  paymentAccountHolder: string;
+  paymentBank: string;
+  acceptsCash: boolean;
 
-  // 6. Plan de Dominio y Preferencias (3 opciones)
-  domainPlan: DomainPlanType;
-  domainOption1: string;
-  domainOption2: string;
-  domainOption3: string;
-
-  // 7. Términos y Condiciones
+  // PASO 9: Pantalla de cierre y términos
   acceptedTerms: boolean;
-}
 
-export type DomainPlanType = 'free' | 'com_ar' | 'com';
+  // Campos heredados opcionales para retrocompatibilidad
+  heroSlogan?: string;
+  heroImageUrl?: string;
+  menuFileUrl?: string;
+  menuFileName?: string;
+}
 
 export type StepId =
   | 'WELCOME'
-  | 'ACCOUNT_SYNC'
-  | 'COMPANY_NAME'
-  | 'BRAND_LOGO'
-  | 'BRAND_STYLE'
-  | 'BRAND_COLORS'
-  | 'BRAND_TYPOGRAPHY'
-  | 'BACKGROUND_TONE'
-  | 'HERO_SECTION'
-  | 'ABOUT_COMPANY'
-  | 'VALUE_PROPOSITION'
-  | 'SERVICES_PORTFOLIO'
-  | 'FAQS_SECTION'
-  | 'CLIENTS_TESTIMONIALS'
-  | 'CONTACT_CHANNELS'
-  | 'DOMAIN_PLAN'
-  | 'DOMAIN_PREFERENCES'
-  | 'DOMAIN_CHOICE'
-  | 'FINAL_REVIEW';
+  | 'PURCHASE_VALIDATION'
+  | 'RESTAURANT_IDENTITY'
+  | 'LOGO_UPLOAD'
+  | 'VISUAL_STYLE'
+  | 'MANAGEMENT_PLAN'
+  | 'CATALOG_SETUP'
+  | 'LOGISTICS_WHATSAPP'
+  | 'PAYMENT_METHODS'
+  | 'CLOSING_TERMS';
 
 export interface StepDefinition {
   id: StepId;
+  stepNumber: number;
   title: string;
+  shortTitle: string;
   category: string;
-  description?: string;
 }

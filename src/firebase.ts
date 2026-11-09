@@ -3,7 +3,7 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyAu8Fp1Y8mBBOeRZfsRV9G1GffOzL8tjtM",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyAu8Fp1Y8mBB0eRZFsRV9G1GffOzL8tjtM",
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "portal-onboarding-182f0.firebaseapp.com",
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "portal-onboarding-182f0",
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "portal-onboarding-182f0.firebasestorage.app",
@@ -19,4 +19,4 @@ const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
-export const FIRESTORE_COLLECTION = import.meta.env.VITE_FIRESTORE_COLLECTION || "Template Corporativo - Sin dominio";
+export const FIRESTORE_COLLECTION = import.meta.env.VITE_FIRESTORE_COLLECTION || "Menu inteligente";

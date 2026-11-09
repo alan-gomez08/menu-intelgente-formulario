@@ -5,6 +5,7 @@ import { X } from 'lucide-react';
 interface FloatingWhatsAppSupportProps {
   currentStepTitle?: string;
   companyName?: string;
+  restaurantName?: string;
   stepNumber?: number;
 }
 
@@ -24,6 +25,7 @@ export const WhatsAppIcon = ({ size = 28, className = '' }: { size?: number; cla
 export const FloatingWhatsAppSupport: React.FC<FloatingWhatsAppSupportProps> = ({
   currentStepTitle,
   companyName,
+  restaurantName,
   stepNumber
 }) => {
   const [showBubble, setShowBubble] = useState(false);
@@ -34,9 +36,10 @@ export const FloatingWhatsAppSupport: React.FC<FloatingWhatsAppSupportProps> = (
   const agencyPhone = import.meta.env.VITE_AGENCY_WHATSAPP || '5491178188323';
 
   // Mensaje contextual inteligente según el avance del cliente
-  const companyContext = companyName?.trim() ? ` para mi empresa "${companyName.trim()}"` : '';
+  const businessName = restaurantName || companyName;
+  const businessContext = businessName?.trim() ? ` para mi local "${businessName.trim()}"` : '';
   const stepContext = currentStepTitle ? ` (estoy en: ${currentStepTitle}${stepNumber !== undefined ? ` · Paso ${stepNumber}` : ''})` : '';
-  const whatsappMessage = `¡Hola AG Digital Studio! Necesito una consulta o asistencia para completar el formulario corporativo${companyContext}${stepContext}.`;
+  const whatsappMessage = `¡Hola AG Digital Studio! Necesito una consulta o asistencia para configurar el Menú Digital${businessContext}${stepContext}.`;
   const whatsappUrl = `https://wa.me/${agencyPhone}?text=${encodeURIComponent(whatsappMessage)}`;
 
   // Animación de entrada de la burbuja tras 1.2 segundos para captar la atención de forma elegante
@@ -50,13 +53,13 @@ export const FloatingWhatsAppSupport: React.FC<FloatingWhatsAppSupportProps> = (
     return () => clearTimeout(timer);
   }, [isDismissed]);
 
-  // Colapsa suavemente la burbuja tras 8.5 segundos en mobile para no obstruir pantalla
+  // Colapsa suavemente la burbuja tras 4.5 segundos para no obstruir pantalla en móviles
   useEffect(() => {
     if (!showBubble) return;
 
     const autoCollapseTimer = setTimeout(() => {
       setShowBubble(false);
-    }, 8500);
+    }, 4500);
 
     return () => clearTimeout(autoCollapseTimer);
   }, [showBubble]);
@@ -72,7 +75,7 @@ export const FloatingWhatsAppSupport: React.FC<FloatingWhatsAppSupportProps> = (
 
   return (
     <div
-      className="fixed bottom-20 sm:bottom-6 right-3.5 sm:right-6 z-40 flex items-center gap-2.5 pointer-events-none select-none"
+      className="fixed bottom-[74px] sm:bottom-6 right-3 sm:right-6 z-30 flex items-center gap-2 pointer-events-none select-none"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -80,28 +83,28 @@ export const FloatingWhatsAppSupport: React.FC<FloatingWhatsAppSupportProps> = (
       <AnimatePresence>
         {isBubbleVisible && (
           <motion.div
-            initial={{ opacity: 0, x: 20, scale: 0.9 }}
+            initial={{ opacity: 0, x: 15, scale: 0.9 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, x: 15, scale: 0.92 }}
+            exit={{ opacity: 0, x: 12, scale: 0.92 }}
             transition={{ type: 'spring', damping: 22, stiffness: 320 }}
-            className="pointer-events-auto relative flex items-center gap-2.5 bg-slate-950/95 text-white backdrop-blur-xl border border-slate-800/90 shadow-[0_12px_35px_-8px_rgba(15,23,42,0.35)] rounded-2xl py-2.5 px-3.5 max-w-[230px] sm:max-w-[270px] cursor-pointer group transition-all"
+            className="pointer-events-auto relative flex items-center gap-2 bg-slate-950/95 text-white backdrop-blur-xl border border-slate-800/90 shadow-[0_12px_35px_-8px_rgba(15,23,42,0.35)] rounded-2xl py-2 px-3 max-w-[175px] xs:max-w-[210px] sm:max-w-[270px] cursor-pointer group transition-all"
             onClick={() => window.open(whatsappUrl, '_blank', 'noopener,noreferrer')}
             role="alert"
           >
             {/* PUNTO VERDE INDICADOR DE DISPONIBILIDAD */}
-            <span className="relative flex h-2.5 w-2.5 shrink-0">
+            <span className="relative flex h-2 w-2 shrink-0">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#25D366] opacity-75" />
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#25D366]" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#25D366]" />
             </span>
 
             {/* TEXTO DE LLAMADO A LA ACCIÓN */}
-            <div className="flex flex-col min-w-0 pr-1">
-              <span className="text-xs font-bold text-white leading-tight flex items-center gap-1.5 truncate">
-                <WhatsAppIcon size={14} className="text-[#25D366] shrink-0" />
-                <span>¿Necesitás ayuda?</span>
+            <div className="flex flex-col min-w-0 pr-0.5">
+              <span className="text-[11px] sm:text-xs font-bold text-white leading-tight flex items-center gap-1 truncate">
+                <WhatsAppIcon size={13} className="text-[#25D366] shrink-0" />
+                <span>¿Dudas o ayuda?</span>
               </span>
-              <span className="text-[11px] text-slate-400 leading-tight truncate group-hover:text-slate-200 transition-colors">
-                Contactanos por WhatsApp
+              <span className="text-[10px] sm:text-[11px] text-slate-400 leading-tight truncate group-hover:text-slate-200 transition-colors">
+                Contactar por WhatsApp
               </span>
             </div>
 
@@ -113,7 +116,7 @@ export const FloatingWhatsAppSupport: React.FC<FloatingWhatsAppSupportProps> = (
               title="Cerrar sugerencia"
               aria-label="Cerrar sugerencia de ayuda"
             >
-              <X size={13} />
+              <X size={12} />
             </button>
           </motion.div>
         )}
@@ -130,13 +133,14 @@ export const FloatingWhatsAppSupport: React.FC<FloatingWhatsAppSupportProps> = (
         transition={{ type: 'spring', damping: 20, stiffness: 280, delay: 0.3 }}
         whileHover={{ scale: 1.08 }}
         whileTap={{ scale: 0.94 }}
-        className="pointer-events-auto relative w-[52px] h-[52px] sm:w-[58px] sm:h-[58px] rounded-full bg-[#25D366] hover:bg-[#20ba5a] text-white flex items-center justify-center shadow-[0_8px_25px_rgba(37,211,102,0.45)] hover:shadow-[0_12px_32px_rgba(37,211,102,0.6)] border-2 border-white/40 transition-all cursor-pointer group shrink-0"
+        className="pointer-events-auto relative w-12 h-12 sm:w-[56px] sm:h-[56px] rounded-full bg-[#25D366] hover:bg-[#20ba5a] text-white flex items-center justify-center shadow-[0_8px_25px_rgba(37,211,102,0.45)] hover:shadow-[0_12px_32px_rgba(37,211,102,0.6)] border-2 border-white/50 transition-all cursor-pointer group shrink-0"
       >
         {/* RESPLANDOR PULSANTE DISCRETO */}
         <span className="absolute inset-0 rounded-full bg-[#25D366]/40 animate-ping -z-10 pointer-events-none opacity-40 group-hover:opacity-75" />
 
         {/* ÍCONO OFICIAL DE WHATSAPP */}
-        <WhatsAppIcon size={30} className="text-white drop-shadow-sm transition-transform duration-200 group-hover:scale-110" />
+        <WhatsAppIcon size={26} className="text-white drop-shadow-sm transition-transform duration-200 group-hover:scale-110 sm:hidden" />
+        <WhatsAppIcon size={29} className="text-white drop-shadow-sm transition-transform duration-200 group-hover:scale-110 hidden sm:block" />
       </motion.a>
     </div>
   );

@@ -1,1 +1,4 @@
-export { StepWelcome, DEFAULT_CORPORATE_DEMO_URL, default } from './steps/StepWelcome';
+import StepWelcome from './steps/StepWelcome';
+export { StepWelcome };
+export default StepWelcome;
+
