@@ -75,7 +75,7 @@ export const FloatingWhatsAppSupport: React.FC<FloatingWhatsAppSupportProps> = (
 
   return (
     <div
-      className="fixed bottom-[74px] sm:bottom-6 right-3 sm:right-6 z-30 flex items-center gap-2 pointer-events-none select-none"
+      className="fixed bottom-[calc(76px+env(safe-area-inset-bottom,0px))] sm:bottom-6 right-3 sm:right-6 z-30 flex items-center gap-2 pointer-events-none select-none"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >

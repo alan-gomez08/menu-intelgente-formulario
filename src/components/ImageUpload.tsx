@@ -121,14 +121,14 @@ export default function ImageUpload({
             alt="Preview"
             className={`w-full h-full ${aspectRatio === 'vertical' ? 'object-cover rounded-xl' : 'object-contain'}`}
           />
-          {/* BOTÓN DE CAMBIAR IMAGEN (VISIBLE EN MOBILE, CON HOVER EN DESKTOP) */}
-          <div className="absolute inset-0 bg-slate-950/40 sm:bg-slate-950/40 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-2xs">
+          {/* BOTÓN DE CAMBIAR IMAGEN (BOTÓN LIMPIO EN MOBILE, HOVER EN DESKTOP) */}
+          <div className="absolute top-2 right-2 sm:inset-0 sm:bg-slate-950/40 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex items-center justify-end sm:justify-center p-2">
             <button
               type="button"
               onClick={clearImage}
-              className="bg-white hover:bg-red-50 text-red-600 px-4 py-2.5 rounded-xl border border-slate-200 shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold"
+              className="bg-white/95 hover:bg-red-50 text-red-600 px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-slate-200 shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold"
             >
-              <X size={15} />
+              <X size={14} />
               <span>Cambiar imagen</span>
             </button>
           </div>

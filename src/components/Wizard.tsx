@@ -792,7 +792,7 @@ export default function Wizard() {
           </motion.div>
         </main>
       ) : (
-        <main className="w-full max-w-3xl flex flex-col pb-36 sm:pb-32 mt-2 sm:mt-4 px-2 sm:px-0 transition-all duration-300">
+        <main className="w-full max-w-3xl flex flex-col pb-36 sm:pb-32 mt-1 sm:mt-4 px-0 transition-all duration-300">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={currentStep.id}
@@ -815,8 +815,8 @@ export default function Wizard() {
               {/* PASO 1: Validación de Compra */}
               {/* ============================================================ */}
               {currentStep.id === 'PURCHASE_VALIDATION' && (
-                <div className="flex flex-col gap-6 py-2">
-                  <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-4 sm:gap-6 py-2">
+                  <div className="flex flex-col gap-1.5 sm:gap-2">
                     <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
                       Paso 01 · Identidad
                     </span>
@@ -828,7 +828,7 @@ export default function Wizard() {
                     </p>
                   </div>
 
-                  <div className="glass-panel rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col gap-5">
+                  <div className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-sm flex flex-col gap-4 sm:gap-5">
                     <div className="flex flex-col gap-2">
                       <label className="text-xs sm:text-sm font-bold text-slate-700 uppercase tracking-wide">
                         Usuario de Mercado Libre o email *
@@ -844,7 +844,7 @@ export default function Wizard() {
                           }
                         }}
                         placeholder="Ej: PIZZERIA_VENTAS o contacto@local.com"
-                        className="w-full h-14 bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 rounded-2xl px-5 text-base font-bold text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-2xs"
+                        className="w-full h-13 sm:h-14 bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 rounded-2xl px-4 sm:px-5 text-base font-bold text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-2xs"
                         autoFocus
                       />
                     </div>
@@ -858,8 +858,8 @@ export default function Wizard() {
               {/* PASO 2: Identidad del Local */}
               {/* ============================================================ */}
               {currentStep.id === 'RESTAURANT_IDENTITY' && (
-                <div className="flex flex-col gap-6 py-2">
-                  <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-4 sm:gap-6 py-2">
+                  <div className="flex flex-col gap-1.5 sm:gap-2">
                     <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
                       Paso 02 · Identidad
                     </span>
@@ -871,7 +871,7 @@ export default function Wizard() {
                     </p>
                   </div>
 
-                  <div className="glass-panel rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col gap-5">
+                  <div className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-sm flex flex-col gap-4 sm:gap-5">
                     <div className="flex flex-col gap-2">
                       <label className="text-xs sm:text-sm font-bold text-slate-700 uppercase tracking-wide">
                         Nombre de tu local gastronómico *
@@ -886,8 +886,8 @@ export default function Wizard() {
                             nextStep();
                           }
                         }}
-                        placeholder="Ej: Pizzería Don Antonio, Smash Burger Casanova, Sushi House"
-                        className="w-full h-14 bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 rounded-2xl px-5 text-base font-bold text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-2xs"
+                        placeholder="Ej: Pizzería Don Antonio, Smash Burger Casanova"
+                        className="w-full h-13 sm:h-14 bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 rounded-2xl px-4 sm:px-5 text-base font-bold text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-2xs"
                         autoFocus
                       />
                     </div>
@@ -901,8 +901,8 @@ export default function Wizard() {
               {/* PASO 3: Carga de Logotipo */}
               {/* ============================================================ */}
               {currentStep.id === 'LOGO_UPLOAD' && (
-                <div className="flex flex-col gap-6 py-2">
-                  <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-4 sm:gap-6 py-2">
+                  <div className="flex flex-col gap-1.5 sm:gap-2">
                     <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
                       Paso 03 · Identidad
                     </span>
@@ -914,7 +914,7 @@ export default function Wizard() {
                     </p>
                   </div>
 
-                  <div className="glass-panel rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col gap-5">
+                  <div className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-sm flex flex-col gap-4 sm:gap-5">
                     {!data.noLogo && (
                       <ImageUpload
                         clientFolder={getClientFolderName()}
@@ -926,7 +926,7 @@ export default function Wizard() {
                       />
                     )}
 
-                    <label className="flex items-center gap-3.5 p-4 bg-slate-50/80 border border-slate-200 hover:border-slate-300 rounded-2xl cursor-pointer hover:bg-slate-100/60 transition-all select-none">
+                    <label className="flex items-center gap-3 p-3.5 sm:p-4 bg-slate-50/80 border border-slate-200 hover:border-slate-300 rounded-2xl cursor-pointer hover:bg-slate-100/60 transition-all select-none">
                       <input
                         type="checkbox"
                         checked={data.noLogo}
@@ -937,10 +937,10 @@ export default function Wizard() {
                         className="w-4 h-4 rounded text-slate-900 border-slate-300 focus:ring-0 cursor-pointer shrink-0"
                       />
                       <div className="flex flex-col">
-                        <span className="font-bold text-slate-900 text-sm">
+                        <span className="font-bold text-slate-900 text-xs sm:text-sm">
                           Aún no tengo logotipo oficial
                         </span>
-                        <span className="text-xs text-slate-500">
+                        <span className="text-[11px] sm:text-xs text-slate-500">
                           Si marcás esta opción, usaremos el nombre del local en formato texto tipográfico elegante y moderno.
                         </span>
                       </div>
@@ -1181,19 +1181,19 @@ export default function Wizard() {
                   </div>
 
                   {/* SECCIÓN A: SELECCIÓN DE MODALIDAD (2 CARDS GIGANTES) */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
                     {/* CARD 1: PLAN AUTOGESTIONABLE ($0/MES) - ÍCONOS HOMOGENEIZADOS */}
                     <div
                       onClick={() => handleInputChange('managementPlan', 'autogestionable')}
-                      className={`rounded-3xl p-6 sm:p-7 border-2 transition-all cursor-pointer flex flex-col justify-between gap-5 relative select-none ${
+                      className={`rounded-2xl sm:rounded-3xl p-4.5 sm:p-7 border-2 transition-all cursor-pointer flex flex-col justify-between gap-4 sm:gap-5 relative select-none ${
                         data.managementPlan === 'autogestionable'
                           ? 'border-slate-900 bg-white ring-4 ring-slate-900/5 shadow-xl scale-[1.01]'
                           : 'border-slate-200 bg-white/80 hover:border-slate-300 hover:bg-white shadow-sm'
                       }`}
                     >
-                      <div className="flex flex-col gap-3">
+                      <div className="flex flex-col gap-2.5 sm:gap-3">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider bg-slate-100 px-3 py-1 rounded-full">
+                          <span className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider bg-slate-100 px-2.5 sm:px-3 py-1 rounded-full">
                             Plan Autogestionable
                           </span>
                           <div
@@ -1212,15 +1212,15 @@ export default function Wizard() {
                             Hacelo vos mismo
                           </h3>
                           <div className="flex items-baseline gap-1.5 mt-1">
-                            <span className="text-3xl font-black text-slate-900">$0</span>
+                            <span className="text-2xl sm:text-3xl font-black text-slate-900">$0</span>
                             <span className="text-xs font-bold text-slate-400">/ mes (Costo mensual)</span>
                           </div>
                         </div>
                       </div>
 
                       {/* CHECKERS UI HOMOGENEIZADOS: CheckCircle2 y XCircle */}
-                      <div className="flex flex-col gap-3 pt-3 border-t border-slate-100 text-xs">
-                        <ul className="flex flex-col gap-2.5 text-slate-700">
+                      <div className="flex flex-col gap-2.5 pt-3 border-t border-slate-100 text-xs">
+                        <ul className="flex flex-col gap-2 sm:gap-2.5 text-slate-700">
                           <li className="flex items-start gap-2.5">
                             <CheckCircle2 size={16} className="text-emerald-600 shrink-0 mt-0.5" />
                             <span>Entrega del sistema base.</span>
@@ -1248,16 +1248,16 @@ export default function Wizard() {
                     {/* CARD 2: MANTENIMIENTO VIP (RECOMENDADO) - ÍCONOS HOMOGENEIZADOS */}
                     <div
                       onClick={() => handleInputChange('managementPlan', 'vip')}
-                      className={`rounded-3xl p-6 sm:p-7 border-2 transition-all cursor-pointer flex flex-col justify-between gap-5 relative select-none ${
+                      className={`rounded-2xl sm:rounded-3xl p-4.5 sm:p-7 border-2 transition-all cursor-pointer flex flex-col justify-between gap-4 sm:gap-5 relative select-none ${
                         data.managementPlan === 'vip'
                           ? 'border-slate-950 bg-slate-950 text-white ring-4 ring-slate-950/15 shadow-2xl scale-[1.01]'
                           : 'border-slate-300 bg-white hover:border-slate-900 shadow-sm'
                       }`}
                     >
-                      <div className="flex flex-col gap-3">
+                      <div className="flex flex-col gap-2.5 sm:gap-3">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <span className={`text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full ${data.managementPlan === 'vip' ? 'bg-amber-400 text-slate-950 font-black' : 'bg-slate-900 text-white'}`}>
+                            <span className={`text-[11px] sm:text-xs font-bold uppercase tracking-wider px-2.5 sm:px-3 py-1 rounded-full ${data.managementPlan === 'vip' ? 'bg-amber-400 text-slate-950 font-black' : 'bg-slate-900 text-white'}`}>
                               ★ Recomendado
                             </span>
                             <span className={`text-xs font-semibold ${data.managementPlan === 'vip' ? 'text-slate-300' : 'text-slate-500'}`}>
@@ -1280,7 +1280,7 @@ export default function Wizard() {
                             Mantenimiento VIP
                           </h3>
                           <div className="flex items-baseline gap-1.5 mt-1">
-                            <span className={`text-3xl font-black ${data.managementPlan === 'vip' ? 'text-amber-400' : 'text-slate-900'}`}>
+                            <span className={`text-2xl sm:text-3xl font-black ${data.managementPlan === 'vip' ? 'text-amber-400' : 'text-slate-900'}`}>
                               Llave en Mano
                             </span>
                             <span className={`text-xs font-bold ${data.managementPlan === 'vip' ? 'text-slate-400' : 'text-slate-500'}`}>
@@ -1292,7 +1292,7 @@ export default function Wizard() {
 
                       {/* CHECKERS UI: CheckCircle2 */}
                       <div className={`flex flex-col gap-2.5 pt-3 border-t text-xs ${data.managementPlan === 'vip' ? 'border-slate-800' : 'border-slate-100'}`}>
-                        <ul className={`flex flex-col gap-2.5 ${data.managementPlan === 'vip' ? 'text-slate-200' : 'text-slate-700'}`}>
+                        <ul className={`flex flex-col gap-2 sm:gap-2.5 ${data.managementPlan === 'vip' ? 'text-slate-200' : 'text-slate-700'}`}>
                           <li className="flex items-start gap-2.5">
                             <CheckCircle2 size={16} className={`shrink-0 mt-0.5 ${data.managementPlan === 'vip' ? 'text-amber-400' : 'text-emerald-600'}`} />
                             <span><strong>Delegación total</strong> (nos mandás un WhatsApp y listo).</span>
@@ -1303,11 +1303,11 @@ export default function Wizard() {
                           </li>
                           <li className="flex items-start gap-2.5">
                             <CheckCircle2 size={16} className={`shrink-0 mt-0.5 ${data.managementPlan === 'vip' ? 'text-amber-400' : 'text-emerald-600'}`} />
-                            <span><strong>Diseño Premium</strong> (banners mensuales para promociones).</span>
+                            <span><strong>Diseño Premium</strong> (banners mensuales).</span>
                           </li>
                           <li className="flex items-start gap-2.5">
                             <CheckCircle2 size={16} className={`shrink-0 mt-0.5 ${data.managementPlan === 'vip' ? 'text-amber-400' : 'text-emerald-600'}`} />
-                            <span><strong>Soporte Prioritario 24/7</strong> con hosting y dominio cubiertos.</span>
+                            <span><strong>Soporte Prioritario 24/7</strong> con hosting incluido.</span>
                           </li>
                         </ul>
                       </div>
@@ -1324,77 +1324,92 @@ export default function Wizard() {
                         transition={{ duration: 0.3 }}
                         className="overflow-hidden"
                       >
-                        <div className="glass-panel rounded-3xl p-5 sm:p-7 shadow-md border-2 border-slate-900 flex flex-col gap-5 bg-slate-900/[0.02]">
+                        <div className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-md border-2 border-slate-900 flex flex-col gap-4 sm:gap-5 bg-slate-900/[0.02]">
                           {/* DISCLAIMER TEXTO SUPERIOR CON COTIZACIÓN DÓLAR OFICIAL ACTUAL */}
-                          <div className="flex items-start gap-2.5 p-3.5 rounded-2xl bg-blue-50/80 border border-blue-200/90 text-xs text-blue-900">
+                          <div className="flex items-start gap-2.5 p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-blue-50/80 border border-blue-200/90 text-xs text-blue-900">
                             <Info size={17} className="text-blue-600 shrink-0 mt-0.5" />
                             <p className="leading-relaxed">
                               Los valores están expresados en dólares (USD) para mantener la estabilidad del servicio. El pago se realiza en Pesos Argentinos (ARS) mediante transferencia al Tipo de Cambio Dólar Oficial del día (Cotización oficial de hoy: <strong>1 USD = ${dolarOficial.toLocaleString('es-AR')} ARS</strong>{dolarFecha ? ` · Actualizado al ${dolarFecha}` : ''}).
                             </p>
                           </div>
 
-                          {/* LAYOUT GRID (GRID-COLS-3 EN DESKTOP) */}
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          {/* LAYOUT GRID RESPONSIVE (FILAS EN MOBILE, GRID-COLS-3 EN DESKTOP) */}
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
                             {/* COLUMNA 1: MENSUAL */}
                             <label
                               onClick={() => handleInputChange('billingCycle', 'mensual')}
-                              className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between h-28 select-none ${
+                              className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border-2 transition-all cursor-pointer flex flex-row sm:flex-col items-center sm:items-stretch justify-between min-h-[64px] sm:h-28 select-none ${
                                 data.billingCycle === 'mensual'
                                   ? 'border-slate-900 bg-white ring-2 ring-slate-900 shadow-sm'
                                   : 'border-slate-200 bg-white/70 hover:bg-white hover:border-slate-300'
                               }`}
                             >
-                              <div className="flex items-center justify-between">
+                              <div className="flex items-center justify-between sm:w-full">
                                 <span className="font-extrabold text-sm text-slate-900">Mensual</span>
-                                <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${data.billingCycle === 'mensual' ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300'}`}>
+                                <div className={`hidden sm:flex w-4 h-4 rounded-full border items-center justify-center shrink-0 ${data.billingCycle === 'mensual' ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300'}`}>
                                   {data.billingCycle === 'mensual' && <Check size={10} />}
                                 </div>
                               </div>
-                              <div className="flex flex-col">
-                                <span className="text-xl font-black text-slate-900">10 USD</span>
-                                <span className="text-[11px] text-slate-600 font-semibold">~ ${precioMensualARS} ARS / mes</span>
+                              <div className="flex items-center sm:items-start justify-between sm:flex-col gap-2.5 sm:gap-0">
+                                <div className="flex flex-col text-right sm:text-left sm:mt-1">
+                                  <span className="text-base sm:text-xl font-black text-slate-900">10 USD</span>
+                                  <span className="text-[10px] sm:text-[11px] text-slate-600 font-semibold">~ ${precioMensualARS} ARS / mes</span>
+                                </div>
+                                <div className={`sm:hidden w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${data.billingCycle === 'mensual' ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300'}`}>
+                                  {data.billingCycle === 'mensual' && <Check size={11} strokeWidth={3} />}
+                                </div>
                               </div>
                             </label>
 
                             {/* COLUMNA 2: TRIMESTRAL */}
                             <label
                               onClick={() => handleInputChange('billingCycle', 'trimestral')}
-                              className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between h-28 select-none ${
+                              className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border-2 transition-all cursor-pointer flex flex-row sm:flex-col items-center sm:items-stretch justify-between min-h-[64px] sm:h-28 select-none ${
                                 data.billingCycle === 'trimestral'
                                   ? 'border-slate-900 bg-white ring-2 ring-slate-900 shadow-sm'
                                   : 'border-slate-200 bg-white/70 hover:bg-white hover:border-slate-300'
                               }`}
                             >
-                              <div className="flex items-center justify-between">
+                              <div className="flex items-center justify-between sm:w-full">
                                 <span className="font-extrabold text-sm text-slate-900">Trimestral</span>
-                                <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${data.billingCycle === 'trimestral' ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300'}`}>
+                                <div className={`hidden sm:flex w-4 h-4 rounded-full border items-center justify-center shrink-0 ${data.billingCycle === 'trimestral' ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300'}`}>
                                   {data.billingCycle === 'trimestral' && <Check size={10} />}
                                 </div>
                               </div>
-                              <div className="flex flex-col">
-                                <span className="text-xl font-black text-slate-900">25 USD</span>
-                                <span className="text-[11px] text-slate-600 font-semibold">~ ${precioTrimestralARS} ARS total</span>
+                              <div className="flex items-center sm:items-start justify-between sm:flex-col gap-2.5 sm:gap-0">
+                                <div className="flex flex-col text-right sm:text-left sm:mt-1">
+                                  <span className="text-base sm:text-xl font-black text-slate-900">25 USD</span>
+                                  <span className="text-[10px] sm:text-[11px] text-slate-600 font-semibold">~ ${precioTrimestralARS} ARS total</span>
+                                </div>
+                                <div className={`sm:hidden w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${data.billingCycle === 'trimestral' ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300'}`}>
+                                  {data.billingCycle === 'trimestral' && <Check size={11} strokeWidth={3} />}
+                                </div>
                               </div>
                             </label>
 
                             {/* COLUMNA 3: SEMESTRAL */}
                             <label
                               onClick={() => handleInputChange('billingCycle', 'semestral')}
-                              className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between h-28 select-none ${
+                              className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border-2 transition-all cursor-pointer flex flex-row sm:flex-col items-center sm:items-stretch justify-between min-h-[64px] sm:h-28 select-none ${
                                 data.billingCycle === 'semestral'
                                   ? 'border-slate-900 bg-white ring-2 ring-slate-900 shadow-sm'
                                   : 'border-slate-200 bg-white/70 hover:bg-white hover:border-slate-300'
                               }`}
                             >
-                              <div className="flex items-center justify-between">
+                              <div className="flex items-center justify-between sm:w-full">
                                 <span className="font-extrabold text-sm text-slate-900">Semestral</span>
-                                <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${data.billingCycle === 'semestral' ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300'}`}>
+                                <div className={`hidden sm:flex w-4 h-4 rounded-full border items-center justify-center shrink-0 ${data.billingCycle === 'semestral' ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300'}`}>
                                   {data.billingCycle === 'semestral' && <Check size={10} />}
                                 </div>
                               </div>
-                              <div className="flex flex-col">
-                                <span className="text-xl font-black text-slate-900">45 USD</span>
-                                <span className="text-[11px] text-slate-600 font-semibold">~ ${precioSemestralARS} ARS total</span>
+                              <div className="flex items-center sm:items-start justify-between sm:flex-col gap-2.5 sm:gap-0">
+                                <div className="flex flex-col text-right sm:text-left sm:mt-1">
+                                  <span className="text-base sm:text-xl font-black text-slate-900">45 USD</span>
+                                  <span className="text-[10px] sm:text-[11px] text-slate-600 font-semibold">~ ${precioSemestralARS} ARS total</span>
+                                </div>
+                                <div className={`sm:hidden w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${data.billingCycle === 'semestral' ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300'}`}>
+                                  {data.billingCycle === 'semestral' && <Check size={11} strokeWidth={3} />}
+                                </div>
                               </div>
                             </label>
                           </div>
@@ -1402,39 +1417,44 @@ export default function Wizard() {
                           {/* LAYOUT FULL WIDTH: CARD ANUAL (100 USD) */}
                           <label
                             onClick={() => handleInputChange('billingCycle', 'anual')}
-                            className={`p-5 rounded-3xl border-2 transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 select-none ${
+                            className={`p-4 sm:p-5 rounded-2xl sm:rounded-3xl border-2 transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 select-none ${
                               data.billingCycle === 'anual'
                                 ? 'border-amber-500 bg-amber-50/90 ring-4 ring-amber-500/15 shadow-lg'
                                 : 'border-amber-300/80 bg-amber-50/40 hover:bg-amber-50/80'
                             }`}
                           >
-                            <div className="flex items-start gap-3.5">
-                              <div className="w-11 h-11 rounded-2xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-md mt-0.5">
-                                <Flame size={24} className="animate-pulse" />
+                            <div className="flex items-start gap-3 sm:gap-3.5">
+                              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-md mt-0.5">
+                                <Flame size={22} className="animate-pulse" />
                               </div>
                               <div className="flex flex-col">
                                 <div className="flex items-center gap-2">
-                                  <span className="font-black text-slate-950 text-base sm:text-lg">
+                                  <span className="font-black text-slate-950 text-sm sm:text-lg">
                                     ANUAL: 100 USD
                                   </span>
-                                  <span className="text-xs text-amber-950 font-bold bg-amber-200/80 px-2 py-0.5 rounded-md">
-                                    ~ ${precioAnualARS} ARS / año
-                                  </span>
-                                  <span className="text-[10px] uppercase font-black bg-amber-500 text-white px-2.5 py-0.5 rounded-full shadow-2xs">
+                                  <span className="text-[10px] sm:text-xs text-amber-950 font-bold bg-amber-200/80 px-2 py-0.5 rounded-md">
                                     Más Elegido
                                   </span>
                                 </div>
-                                <span className="text-xs sm:text-[13px] font-bold text-amber-950 mt-1 leading-snug">
-                                  🔥 PROMO: Si abonás el año completo, te reintegramos el 100% del costo de desarrollo ($40.000 ARS). Tu sistema te sale gratis.
+                                <span className="text-xs text-slate-600 font-bold mt-0.5">
+                                  ~ ${precioAnualARS} ARS / año
                                 </span>
-                                <span className="text-[11px] text-amber-800/80 mt-0.5">
-                                  Asistencia técnica prioritaria y actualizaciones ilimitadas durante todo el año.
-                                </span>
+                                <p className="text-[11px] sm:text-xs text-amber-900/90 font-semibold mt-1">
+                                  🔥 PROMO: Te reintegramos el 100% del costo de desarrollo ($40.000 ARS).
+                                </p>
                               </div>
                             </div>
 
-                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 self-end sm:self-center ${data.billingCycle === 'anual' ? 'border-amber-600 bg-amber-600 text-white' : 'border-amber-400 bg-white'}`}>
-                              {data.billingCycle === 'anual' && <Check size={12} strokeWidth={3} />}
+                            <div className="flex items-center justify-end sm:justify-center">
+                              <div
+                                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                                  data.billingCycle === 'anual'
+                                    ? 'border-amber-600 bg-amber-500 text-white'
+                                    : 'border-amber-300 bg-white'
+                                }`}
+                              >
+                                {data.billingCycle === 'anual' && <Check size={12} strokeWidth={3} />}
+                              </div>
                             </div>
                           </label>
                         </div>
@@ -1466,14 +1486,14 @@ export default function Wizard() {
                     <button
                       type="button"
                       onClick={() => setCatalogSubStep(0)}
-                      className={`flex-1 py-2.5 px-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                      className={`flex-1 py-2 sm:py-2.5 px-1.5 sm:px-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1 sm:gap-1.5 ${
                         catalogSubStep === 0
                           ? 'bg-white text-slate-950 shadow-sm'
                           : 'text-slate-600 hover:text-slate-950'
                       }`}
                     >
-                      <span>7A. Categorías</span>
-                      <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-100 font-mono">
+                      <span className="truncate">7A. Categorías</span>
+                      <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-100 font-mono shrink-0">
                         {data.categoriesList.length}
                       </span>
                     </button>
@@ -1483,7 +1503,7 @@ export default function Wizard() {
                         if (data.categoriesList.length > 0) setCatalogSubStep(1);
                       }}
                       disabled={data.categoriesList.length === 0}
-                      className={`flex-1 py-2.5 px-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                      className={`flex-1 py-2 sm:py-2.5 px-1.5 sm:px-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1 sm:gap-1.5 ${
                         catalogSubStep === 1
                           ? 'bg-white text-slate-950 shadow-sm'
                           : data.categoriesList.length === 0
@@ -1491,8 +1511,8 @@ export default function Wizard() {
                           : 'text-slate-600 hover:text-slate-950'
                       }`}
                     >
-                      <span>7B. Carga de Platos</span>
-                      <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-100 font-mono">
+                      <span className="truncate">7B. <span className="hidden sm:inline">Carga de </span>Platos</span>
+                      <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-100 font-mono shrink-0">
                         {data.dishesList.filter((d) => d.name.trim() !== '' && d.price.trim() !== '').length}
                       </span>
                     </button>
@@ -1503,7 +1523,7 @@ export default function Wizard() {
                         if (valid.length > 0) setCatalogSubStep(2);
                       }}
                       disabled={data.dishesList.filter((d) => d.name.trim() !== '' && d.price.trim() !== '').length === 0}
-                      className={`flex-1 py-2.5 px-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                      className={`flex-1 py-2 sm:py-2.5 px-1.5 sm:px-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1 sm:gap-1.5 ${
                         catalogSubStep === 2
                           ? 'bg-white text-slate-950 shadow-sm'
                           : data.dishesList.filter((d) => d.name.trim() !== '' && d.price.trim() !== '').length === 0
@@ -1511,8 +1531,8 @@ export default function Wizard() {
                           : 'text-slate-600 hover:text-slate-950'
                       }`}
                     >
-                      <span>7C. Destacados</span>
-                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${data.featuredDishIds.length > 0 ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600'}`}>
+                      <span className="truncate">7C. Destacados</span>
+                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono shrink-0 ${data.featuredDishIds.length > 0 ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600'}`}>
                         {data.featuredDishIds.length}/6
                       </span>
                     </button>
@@ -1527,7 +1547,7 @@ export default function Wizard() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
-                      className="glass-panel rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col gap-6"
+                      className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-sm flex flex-col gap-5 sm:gap-6"
                     >
                       <div className="flex flex-col gap-1">
                         <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
@@ -1551,7 +1571,7 @@ export default function Wizard() {
                             }
                           }}
                           placeholder="Nombre de la categoría (ej: Pizzas, Empanadas, Lomitos)"
-                          className="flex-1 w-full h-13 bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white rounded-2xl px-4 text-sm sm:text-base font-semibold text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-2xs"
+                          className="flex-1 w-full h-13 bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white rounded-2xl px-4 text-base font-semibold text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-2xs"
                         />
                         <button
                           type="button"
@@ -1594,15 +1614,15 @@ export default function Wizard() {
                         </span>
 
                         {data.categoriesList.length === 0 ? (
-                          <div className="p-6 rounded-2xl border border-dashed border-slate-300 text-center text-xs text-slate-400">
+                          <div className="p-5 sm:p-6 rounded-2xl border border-dashed border-slate-300 text-center text-xs text-slate-400">
                             Aún no agregaste categorías. Escribí un nombre arriba y hacé clic en "Agregar Categoría".
                           </div>
                         ) : (
-                          <div className="flex flex-wrap gap-2.5 p-3 rounded-2xl bg-slate-50 border border-slate-200/80">
+                          <div className="flex flex-wrap gap-2 sm:gap-2.5 p-3 rounded-2xl bg-slate-50 border border-slate-200/80">
                             {data.categoriesList.map((cat) => (
                               <div
                                 key={cat}
-                                className="inline-flex items-center gap-2 pl-3.5 pr-2 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs sm:text-sm font-bold shadow-2xs group"
+                                className="inline-flex items-center gap-2 pl-3 pr-2 py-1.5 sm:pl-3.5 sm:py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs sm:text-sm font-bold shadow-2xs group"
                               >
                                 <span>{cat}</span>
                                 <button
@@ -1625,7 +1645,7 @@ export default function Wizard() {
                           type="button"
                           onClick={() => setCatalogSubStep(1)}
                           disabled={data.categoriesList.length === 0}
-                          className={`h-12 px-6 rounded-2xl font-bold text-xs sm:text-sm flex items-center gap-2 transition-all ${
+                          className={`w-full sm:w-auto h-12 px-6 rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
                             data.categoriesList.length > 0
                               ? 'bg-slate-950 hover:bg-slate-900 text-white cursor-pointer shadow-md'
                               : 'bg-slate-100 text-slate-400 cursor-not-allowed'
@@ -1647,7 +1667,7 @@ export default function Wizard() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
-                      className="flex flex-col gap-5"
+                      className="flex flex-col gap-4 sm:gap-5"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex flex-col">
@@ -1673,7 +1693,7 @@ export default function Wizard() {
                         return (
                           <div
                             key={cat}
-                            className="glass-panel rounded-3xl p-5 sm:p-7 shadow-xs flex flex-col gap-4 border border-slate-200/90"
+                            className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-xs flex flex-col gap-3.5 sm:gap-4 border border-slate-200/90"
                           >
                             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                               <h4 className="text-sm sm:text-base font-black text-slate-900 flex items-center gap-2">
@@ -1687,7 +1707,7 @@ export default function Wizard() {
 
                             {/* ESTADO VACÍO SI SE ELIMINARON TODOS LOS PLATOS DE LA CATEGORÍA */}
                             {categoryDishes.length === 0 ? (
-                              <div className="p-5 rounded-2xl border border-dashed border-slate-300 bg-white/70 flex flex-col items-center justify-center gap-2.5 text-center">
+                              <div className="p-4 sm:p-5 rounded-2xl border border-dashed border-slate-300 bg-white/70 flex flex-col items-center justify-center gap-2.5 text-center">
                                 <p className="text-xs text-slate-500 font-medium">
                                   No tenés platos cargados en la sección <strong className="text-slate-800">{cat}</strong>.
                                 </p>
@@ -1706,7 +1726,7 @@ export default function Wizard() {
                                 {categoryDishes.map((dish, dIdx) => (
                                   <div
                                     key={dish.id}
-                                    className="p-3.5 sm:p-4 rounded-2xl bg-slate-50/90 border border-slate-200 flex flex-col gap-3 transition-all"
+                                    className="p-3 sm:p-4 rounded-2xl bg-slate-50/90 border border-slate-200 flex flex-col gap-2.5 sm:gap-3 transition-all"
                                   >
                                     <div className="flex items-center justify-between gap-2">
                                       <span className="text-[11px] font-bold text-slate-400 uppercase">
@@ -1723,45 +1743,55 @@ export default function Wizard() {
                                       </button>
                                     </div>
 
-                                    <div className="flex items-start gap-3">
+                                    <div className="flex flex-col sm:flex-row sm:items-start gap-3">
                                       {/* UPLOADER DE FOTO DEL PLATO A CLOUDINARY */}
-                                      <DishImageUpload
-                                        value={dish.imageUrl}
-                                        onChange={(url) => updateDish(dish.id, 'imageUrl', url)}
-                                        clientFolder={getClientFolderName()}
-                                        dishName={dish.name}
-                                      />
+                                      <div className="flex items-center gap-3 sm:block shrink-0">
+                                        <DishImageUpload
+                                          value={dish.imageUrl}
+                                          onChange={(url) => updateDish(dish.id, 'imageUrl', url)}
+                                          clientFolder={getClientFolderName()}
+                                          dishName={dish.name}
+                                        />
+                                        <div className="sm:hidden flex flex-col min-w-0">
+                                          <span className="text-xs font-bold text-slate-800">
+                                            {dish.imageUrl ? 'Foto del plato cargada' : 'Foto del plato (opcional)'}
+                                          </span>
+                                          <span className="text-[11px] text-slate-500">
+                                            {dish.imageUrl ? 'Tocá para cambiar o quitar' : 'Tocá para subir foto PNG/JPG'}
+                                          </span>
+                                        </div>
+                                      </div>
 
                                       {/* CAMPOS DEL PLATO CON PLACEHOLDERS REALISTAS */}
-                                      <div className="flex-1 flex flex-col gap-2 min-w-0">
-                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                          <div className="sm:col-span-2">
+                                      <div className="flex-1 flex flex-col gap-2 min-w-0 w-full">
+                                        <div className="grid grid-cols-3 gap-2">
+                                          <div className="col-span-2">
                                             <input
                                               type="text"
                                               value={dish.name}
                                               onChange={(e) => updateDish(dish.id, 'name', e.target.value)}
                                               placeholder={
                                                 cat.toLowerCase().includes('bebid')
-                                                  ? 'Ej: Gaseosa 500ml, Cerveza Artesanal'
+                                                  ? 'Ej: Gaseosa 500ml'
                                                   : cat.toLowerCase().includes('pizz')
-                                                  ? 'Ej: Pizza Muzzarella con Aceitunas'
+                                                  ? 'Ej: Pizza Muzzarella'
                                                   : cat.toLowerCase().includes('empanad')
-                                                  ? 'Ej: Empanada de Carne Cortada a Cuchillo'
+                                                  ? 'Ej: Empanada de Carne'
                                                   : cat.toLowerCase().includes('postr')
-                                                  ? 'Ej: Flan Casero con Dulce de Leche'
+                                                  ? 'Ej: Flan Casero'
                                                   : 'Ej: Hamburguesa Doble Cheddar'
                                               }
-                                              className="w-full h-11 bg-white border border-slate-200 focus:border-slate-900 rounded-xl px-3.5 text-base sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 outline-none"
+                                              className="w-full h-11 bg-white border border-slate-200 focus:border-slate-900 rounded-xl px-3 text-base sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 outline-none"
                                             />
                                           </div>
 
-                                          <div>
+                                          <div className="col-span-1">
                                             <input
                                               type="text"
                                               value={dish.price}
                                               onChange={(e) => updateDish(dish.id, 'price', e.target.value)}
                                               placeholder="Ej: $8.500"
-                                              className="w-full h-11 bg-white border border-slate-200 focus:border-slate-900 rounded-xl px-3.5 text-base sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 outline-none"
+                                              className="w-full h-11 bg-white border border-slate-200 focus:border-slate-900 rounded-xl px-2.5 sm:px-3 text-base sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 outline-none text-right sm:text-left"
                                             />
                                           </div>
                                         </div>
@@ -1772,10 +1802,10 @@ export default function Wizard() {
                                           onChange={(e) => updateDish(dish.id, 'description', e.target.value)}
                                           placeholder={
                                             cat.toLowerCase().includes('bebid')
-                                              ? 'Ej: Presentación 500ml en botella o lata fría (opcional)'
-                                              : 'Ej: Doble medallón 120g, queso cheddar y pan de papa (opcional)'
+                                              ? 'Ej: Presentación 500ml fría (opcional)'
+                                              : 'Ej: Doble medallón 120g, cheddar y pan de papa (opcional)'
                                           }
-                                          className="w-full h-10 bg-white border border-slate-200 focus:border-slate-900 rounded-xl px-3.5 text-base sm:text-xs font-medium text-slate-700 placeholder:text-slate-400 outline-none"
+                                          className="w-full h-10 bg-white border border-slate-200 focus:border-slate-900 rounded-xl px-3 text-base sm:text-xs font-medium text-slate-700 placeholder:text-slate-400 outline-none"
                                         />
                                       </div>
                                     </div>
@@ -1810,11 +1840,11 @@ export default function Wizard() {
                       </div>
 
                       {/* BOTÓN CONTINUAR A 7C */}
-                      <div className="pt-2 flex items-center justify-between gap-3">
+                      <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3">
                         <button
                           type="button"
                           onClick={() => setCatalogSubStep(0)}
-                          className="h-12 px-5 rounded-2xl border border-slate-200 hover:bg-slate-50 font-semibold text-xs text-slate-700 flex items-center gap-2 transition-all cursor-pointer"
+                          className="w-full sm:w-auto h-12 px-5 rounded-2xl border border-slate-200 hover:bg-slate-50 font-semibold text-xs text-slate-700 flex items-center justify-center gap-2 transition-all cursor-pointer"
                         >
                           <ArrowLeft size={15} />
                           <span>Volver a Categorías</span>
@@ -1824,7 +1854,7 @@ export default function Wizard() {
                           type="button"
                           onClick={() => setCatalogSubStep(2)}
                           disabled={data.dishesList.filter((d) => d.name.trim() !== '' && d.price.trim() !== '').length === 0}
-                          className={`h-12 px-6 rounded-2xl font-bold text-xs sm:text-sm flex items-center gap-2 transition-all ${
+                          className={`w-full sm:w-auto h-12 px-6 rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
                             data.dishesList.filter((d) => d.name.trim() !== '' && d.price.trim() !== '').length > 0
                               ? 'bg-slate-950 hover:bg-slate-900 text-white cursor-pointer shadow-md'
                               : 'bg-slate-100 text-slate-400 cursor-not-allowed'
@@ -1977,7 +2007,7 @@ export default function Wizard() {
                     </p>
                   </div>
 
-                  <div className="glass-panel rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col gap-6">
+                  <div className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-sm flex flex-col gap-4 sm:gap-6">
                     {/* INPUT 1: WHATSAPP REQUERIDO */}
                     <div className="flex flex-col gap-2">
                       <label className="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wide">
@@ -1992,7 +2022,7 @@ export default function Wizard() {
                           value={data.whatsappNumber}
                           onChange={(e) => handleInputChange('whatsappNumber', e.target.value)}
                           placeholder="Ej: +54 9 11..."
-                          className="w-full h-14 bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 rounded-2xl pl-11 pr-5 text-base font-bold text-slate-900 outline-none transition-all shadow-2xs"
+                          className="w-full h-13 sm:h-14 bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 rounded-2xl pl-11 pr-5 text-base font-bold text-slate-900 outline-none transition-all shadow-2xs"
                           autoFocus
                         />
                       </div>
@@ -2007,7 +2037,7 @@ export default function Wizard() {
                         Opciones de Entrega Habilitadas *
                       </label>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
                         {/* DELIVERY */}
                         <label
                           onClick={() =>
@@ -2019,7 +2049,7 @@ export default function Wizard() {
                               }
                             }))
                           }
-                          className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between select-none ${
+                          className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between select-none ${
                             data.deliveryMethods.delivery
                               ? 'border-slate-900 bg-slate-900/[0.04] ring-2 ring-slate-900'
                               : 'border-slate-200 bg-white hover:bg-slate-50'
@@ -2050,7 +2080,7 @@ export default function Wizard() {
                               }
                             }))
                           }
-                          className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between select-none ${
+                          className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between select-none ${
                             data.deliveryMethods.takeaway
                               ? 'border-slate-900 bg-slate-900/[0.04] ring-2 ring-slate-900'
                               : 'border-slate-200 bg-white hover:bg-slate-50'
@@ -2062,7 +2092,7 @@ export default function Wizard() {
                             </div>
                             <div className="flex flex-col">
                               <span className="font-extrabold text-sm text-slate-900">Retiro por Local</span>
-                              <span className="text-xs text-slate-500">Take away / Pick up en mostrador</span>
+                              <span className="text-xs text-slate-500">Take away / Mostrador</span>
                             </div>
                           </div>
                           <div className={`w-5 h-5 rounded-lg border-2 flex items-center justify-center shrink-0 ${data.deliveryMethods.takeaway ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300'}`}>
@@ -2075,7 +2105,7 @@ export default function Wizard() {
                     {/* COMPONENTE ZONAS DE ENVÍO */}
                     {data.deliveryMethods.delivery && (
                       <div className="flex flex-col gap-3 pt-3 border-t border-slate-100">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
                           <div>
                             <span className="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wide block">
                               Zonas de Envío
@@ -2087,7 +2117,7 @@ export default function Wizard() {
                           <button
                             type="button"
                             onClick={addDeliveryZone}
-                            className="px-3.5 py-1.5 rounded-xl bg-slate-950 hover:bg-slate-900 text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                            className="w-full sm:w-auto px-4 py-2 sm:py-1.5 rounded-xl bg-slate-950 hover:bg-slate-900 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs"
                           >
                             <Plus size={14} />
                             <span>+ Agregar Zona de Envío</span>
@@ -2143,8 +2173,8 @@ export default function Wizard() {
               {/* PASO 8: MEDIOS DE COBRO (INPUTS PERFECTAMENTE ALINEADOS) */}
               {/* ============================================================ */}
               {currentStep.id === 'PAYMENT_METHODS' && (
-                <div className="flex flex-col gap-6 py-2">
-                  <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-4 sm:gap-6 py-2">
+                  <div className="flex flex-col gap-1.5 sm:gap-2">
                     <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
                       Paso 08 · Checkout & Cobros
                     </span>
@@ -2156,7 +2186,7 @@ export default function Wizard() {
                     </p>
                   </div>
 
-                  <div className="glass-panel rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col gap-5">
+                  <div className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-sm flex flex-col gap-4 sm:gap-5">
                     {/* INPUT 1: CBU / CVU / ALIAS */}
                     <div className="flex flex-col gap-2">
                       <label className="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wide">
@@ -2167,13 +2197,13 @@ export default function Wizard() {
                         value={data.paymentCbuAlias}
                         onChange={(e) => handleInputChange('paymentCbuAlias', e.target.value)}
                         placeholder="Ej: burger.casanova.mp o 00000031000..."
-                        className="w-full h-14 bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 rounded-2xl px-5 text-base font-bold text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-2xs font-mono"
+                        className="w-full h-13 sm:h-14 bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 rounded-2xl px-4 sm:px-5 text-base font-bold text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-2xs font-mono"
                         autoFocus
                       />
                     </div>
 
                     {/* INPUTS 2 Y 3: PERFECTAMENTE ALINEADOS HORIZONTALMENTE */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       {/* TITULAR DE LA CUENTA */}
                       <div className="flex flex-col gap-2">
                         <label className="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wide">
@@ -2184,7 +2214,7 @@ export default function Wizard() {
                           value={data.paymentAccountHolder}
                           onChange={(e) => handleInputChange('paymentAccountHolder', e.target.value)}
                           placeholder="Ej: Juan Pérez o Burger SRL"
-                          className="w-full h-14 bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white rounded-2xl px-4 text-base sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-2xs"
+                          className="w-full h-13 sm:h-14 bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white rounded-2xl px-4 text-base sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-2xs"
                         />
                       </div>
 
@@ -2198,18 +2228,18 @@ export default function Wizard() {
                           value={data.paymentBank}
                           onChange={(e) => handleInputChange('paymentBank', e.target.value)}
                           placeholder="Ej: Mercado Pago, Galicia, Brubank"
-                          className="w-full h-14 bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white rounded-2xl px-4 text-base sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-2xs"
+                          className="w-full h-13 sm:h-14 bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white rounded-2xl px-4 text-base sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-2xs"
                         />
                       </div>
                     </div>
 
                     {/* TOGGLE / SWITCH: ¿ACEPTÁS PAGO EN EFECTIVO? */}
-                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-3 sm:gap-4 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-200">
                       <div className="flex flex-col">
-                        <span className="font-extrabold text-sm text-slate-900">
+                        <span className="font-extrabold text-xs sm:text-sm text-slate-900">
                           ¿Aceptás pago en efectivo al momento de la entrega/retiro?
                         </span>
-                        <span className="text-xs text-slate-500">
+                        <span className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
                           {data.acceptsCash
                             ? 'Sí, el cliente podrá optar por abonar en efectivo al recibir el pedido.'
                             : 'No, únicamente pedidos abonados previamente por transferencia con comprobante.'}
@@ -2238,8 +2268,8 @@ export default function Wizard() {
               {/* PASO 9: REVISIÓN FINAL Y PUESTA EN MARCHA */}
               {/* ============================================================ */}
               {currentStep.id === 'CLOSING_TERMS' && (
-                <div className="flex flex-col gap-6 py-2">
-                  <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-4 sm:gap-6 py-2">
+                  <div className="flex flex-col gap-1.5 sm:gap-2">
                     <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
                       Paso 09 · Confirmación & Cierre
                     </span>
@@ -2252,9 +2282,9 @@ export default function Wizard() {
                   </div>
 
                   {/* RESUMEN VISUAL EN 4 CARDS */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     {/* CARD 1: IDENTIDAD */}
-                    <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex flex-col justify-between">
+                    <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex flex-col justify-between">
                       <div className="flex items-center justify-between pb-2 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase">
                         <span>01 · Identidad Visual</span>
                         <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
@@ -2277,7 +2307,7 @@ export default function Wizard() {
                     </div>
 
                     {/* CARD 2: PLAN DE GESTIÓN */}
-                    <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex flex-col justify-between">
+                    <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex flex-col justify-between">
                       <div className="flex items-center justify-between pb-2 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase">
                         <span>02 · Plan Elegido</span>
                         <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
@@ -2296,7 +2326,7 @@ export default function Wizard() {
                     </div>
 
                     {/* CARD 3: MENÚ Y CATÁLOGO */}
-                    <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex flex-col justify-between">
+                    <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex flex-col justify-between">
                       <div className="flex items-center justify-between pb-2 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase">
                         <span>03 · Menú & Productos</span>
                         <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
@@ -2315,7 +2345,7 @@ export default function Wizard() {
                     </div>
 
                     {/* CARD 4: LOGÍSTICA & PAGOS */}
-                    <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex flex-col justify-between">
+                    <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex flex-col justify-between">
                       <div className="flex items-center justify-between pb-2 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase">
                         <span>04 · Pedidos & Pagos</span>
                         <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
@@ -2333,7 +2363,7 @@ export default function Wizard() {
                   </div>
 
                   {/* BLOQUE DE CONTRATO Y BASES OPERATIVAS */}
-                  <div className="glass-panel rounded-3xl p-5 sm:p-7 shadow-xs flex flex-col gap-4 border border-slate-200/90">
+                  <div className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-xs flex flex-col gap-3.5 sm:gap-4 border border-slate-200/90">
                     <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
                       <ShieldCheck size={20} className="text-slate-900 shrink-0" />
                       <div>
@@ -2485,14 +2515,14 @@ export default function Wizard() {
 
       {/* BARRA INFERIOR DE ACCIÓN FLOTANTE */}
       {!submittedProject && currentStep.id !== 'WELCOME' && (
-        <div className="fixed bottom-0 sm:bottom-5 inset-x-0 z-40 px-3 py-2 sm:py-3 sm:px-4 pointer-events-none flex justify-center pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <div className="fixed bottom-0 sm:bottom-5 inset-x-0 z-40 px-2 sm:px-4 py-2 sm:py-3 pointer-events-none flex justify-center pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <div className="pointer-events-auto w-full max-w-2xl bg-white/95 sm:bg-white/90 backdrop-blur-2xl border-t sm:border border-slate-200/90 sm:rounded-2xl shadow-[0_-8px_30px_rgba(15,23,42,0.08)] sm:shadow-[0_20px_50px_-10px_rgba(15,23,42,0.16),0_0_0_1px_rgba(255,255,255,0.8)_inset] p-2 sm:p-2.5 flex items-center justify-between gap-2 sm:gap-3 transition-all duration-300">
             {/* BOTÓN ANTERIOR (FUNCIONAL EN TODOS LOS PASOS SIN PERDER ESTADO) */}
             <button
               type="button"
               onClick={prevStep}
               disabled={currentStepIndex === 0 && (currentStep.id !== 'CATALOG_SETUP' || catalogSubStep === 0)}
-              className={`h-11 sm:h-12.5 px-3 sm:px-5 rounded-xl border font-semibold text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 shrink-0 transition-all ${
+              className={`h-11 sm:h-12.5 px-3.5 sm:px-5 rounded-xl border font-semibold text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 shrink-0 transition-all ${
                 currentStepIndex === 0 && (currentStep.id !== 'CATALOG_SETUP' || catalogSubStep === 0)
                   ? 'opacity-30 border-transparent text-slate-400 cursor-not-allowed'
                   : 'bg-white sm:bg-transparent border-slate-200/80 sm:border-transparent hover:border-slate-300 sm:hover:bg-slate-100 text-slate-700 hover:text-slate-950 active:scale-95 cursor-pointer shadow-2xs sm:shadow-none'
