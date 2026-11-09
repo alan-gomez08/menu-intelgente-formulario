@@ -69,34 +69,9 @@ const initialData: MenuFormData = {
   billingCycle: 'anual',
 
   // PASO 6: Creador de Catálogo
-  categoriesList: ['Hamburguesas', 'Bebidas'],
-  dishesList: [
-    {
-      id: 'dish-sample-1',
-      categoryName: 'Hamburguesas',
-      name: 'Smash Doble Cheddar',
-      price: '$8.500',
-      description: 'Doble medallón 120g, queso cheddar fundido y pan de papa.',
-      imageUrl: ''
-    },
-    {
-      id: 'dish-sample-2',
-      categoryName: 'Hamburguesas',
-      name: 'Smash Bacon Crispy',
-      price: '$9.200',
-      description: 'Doble carne, cheddar americano, panceta crocante y salsa barbacoa.',
-      imageUrl: ''
-    },
-    {
-      id: 'dish-sample-3',
-      categoryName: 'Bebidas',
-      name: 'Gaseosa 500ml',
-      price: '$2.000',
-      description: 'Línea Coca Cola o agua con gas',
-      imageUrl: ''
-    }
-  ],
-  featuredDishIds: ['dish-sample-1', 'dish-sample-2'],
+  categoriesList: [],
+  dishesList: [],
+  featuredDishIds: [],
 
   // PASO 7: Logística y Envíos
   whatsappNumber: '+54 9 ',
@@ -104,10 +79,7 @@ const initialData: MenuFormData = {
     delivery: true,
     takeaway: true
   },
-  deliveryZones: [
-    { id: 'zone-1', name: 'Palermo / Ramos Mejía Centro', cost: '$1.500' },
-    { id: 'zone-2', name: 'San Isidro / Zonas Aledañas', cost: '$2.500' }
-  ],
+  deliveryZones: [],
 
   // PASO 8: Medios de Cobro (Checkout)
   paymentCbuAlias: '',
@@ -139,7 +111,45 @@ export default function Wizard() {
       const saved = localStorage.getItem(STORAGE_DATA_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        return { ...initialData, ...parsed };
+
+        // Sanear datos mock de versiones previas para que no aparezcan platos demo prellenados
+        const cleanDishes = Array.isArray(parsed.dishesList)
+          ? parsed.dishesList.filter((d: DishItem) => !d.id?.startsWith('dish-sample-'))
+          : [];
+
+        const hadOnlySampleDishes =
+          !parsed.dishesList ||
+          parsed.dishesList.length === 0 ||
+          parsed.dishesList.every((d: DishItem) => d.id?.startsWith('dish-sample-'));
+
+        const cleanCategories = hadOnlySampleDishes
+          ? []
+          : Array.isArray(parsed.categoriesList)
+          ? parsed.categoriesList
+          : [];
+
+        const cleanFeatured = Array.isArray(parsed.featuredDishIds)
+          ? parsed.featuredDishIds.filter((id: string) => !id.startsWith('dish-sample-'))
+          : [];
+
+        const cleanZones = Array.isArray(parsed.deliveryZones)
+          ? parsed.deliveryZones.filter(
+              (z: DeliveryZone) =>
+                !z.id?.startsWith('zone-1') &&
+                !z.id?.startsWith('zone-2') &&
+                z.name !== 'Palermo / Ramos Mejía Centro' &&
+                z.name !== 'San Isidro / Zonas Aledañas'
+            )
+          : [];
+
+        return {
+          ...initialData,
+          ...parsed,
+          categoriesList: cleanCategories,
+          dishesList: cleanDishes,
+          featuredDishIds: cleanFeatured,
+          deliveryZones: cleanZones
+        };
       }
     } catch (e) {
       console.error('Error recuperando datos de localStorage:', e);
@@ -1483,20 +1493,20 @@ export default function Wizard() {
                     >
                       <span>7B. Carga de Platos</span>
                       <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-100 font-mono">
-                        {data.dishesList.filter((d) => d.name.trim() !== '').length}
+                        {data.dishesList.filter((d) => d.name.trim() !== '' && d.price.trim() !== '').length}
                       </span>
                     </button>
                     <button
                       type="button"
                       onClick={() => {
-                        const valid = data.dishesList.filter((d) => d.name.trim() !== '');
+                        const valid = data.dishesList.filter((d) => d.name.trim() !== '' && d.price.trim() !== '');
                         if (valid.length > 0) setCatalogSubStep(2);
                       }}
-                      disabled={data.dishesList.filter((d) => d.name.trim() !== '').length === 0}
+                      disabled={data.dishesList.filter((d) => d.name.trim() !== '' && d.price.trim() !== '').length === 0}
                       className={`flex-1 py-2.5 px-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                         catalogSubStep === 2
                           ? 'bg-white text-slate-950 shadow-sm'
-                          : data.dishesList.filter((d) => d.name.trim() !== '').length === 0
+                          : data.dishesList.filter((d) => d.name.trim() !== '' && d.price.trim() !== '').length === 0
                           ? 'text-slate-400 cursor-not-allowed opacity-50'
                           : 'text-slate-600 hover:text-slate-950'
                       }`}
@@ -1675,73 +1685,104 @@ export default function Wizard() {
                               </span>
                             </div>
 
-                            {/* FILAS DE PLATOS CON SUBIDA DE FOTO INTEGRADA */}
-                            <div className="flex flex-col gap-3">
-                              {categoryDishes.map((dish, dIdx) => (
-                                <div
-                                  key={dish.id}
-                                  className="p-3.5 sm:p-4 rounded-2xl bg-slate-50/90 border border-slate-200 flex flex-col gap-3 transition-all"
+                            {/* ESTADO VACÍO SI SE ELIMINARON TODOS LOS PLATOS DE LA CATEGORÍA */}
+                            {categoryDishes.length === 0 ? (
+                              <div className="p-5 rounded-2xl border border-dashed border-slate-300 bg-white/70 flex flex-col items-center justify-center gap-2.5 text-center">
+                                <p className="text-xs text-slate-500 font-medium">
+                                  No tenés platos cargados en la sección <strong className="text-slate-800">{cat}</strong>.
+                                </p>
+                                <button
+                                  type="button"
+                                  onClick={() => addDishToCategory(cat)}
+                                  className="px-4 py-2.5 rounded-xl bg-slate-950 hover:bg-slate-900 text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
                                 >
-                                  <div className="flex items-center justify-between gap-2">
-                                    <span className="text-[11px] font-bold text-slate-400 uppercase">
-                                      Plato #{dIdx + 1} en {cat}
-                                    </span>
-                                    <button
-                                      type="button"
-                                      onClick={() => removeDish(dish.id)}
-                                      className="text-xs text-slate-400 hover:text-red-600 flex items-center gap-1 cursor-pointer transition-colors"
-                                      title="Eliminar plato"
-                                    >
-                                      <Trash2 size={14} />
-                                      <span className="text-[11px]">Eliminar</span>
-                                    </button>
-                                  </div>
+                                  <Plus size={14} />
+                                  <span>+ Agregar primer plato a {cat}</span>
+                                </button>
+                              </div>
+                            ) : (
+                              /* FILAS DE PLATOS CON SUBIDA DE FOTO INTEGRADA */
+                              <div className="flex flex-col gap-3">
+                                {categoryDishes.map((dish, dIdx) => (
+                                  <div
+                                    key={dish.id}
+                                    className="p-3.5 sm:p-4 rounded-2xl bg-slate-50/90 border border-slate-200 flex flex-col gap-3 transition-all"
+                                  >
+                                    <div className="flex items-center justify-between gap-2">
+                                      <span className="text-[11px] font-bold text-slate-400 uppercase">
+                                        Plato #{dIdx + 1} en {cat}
+                                      </span>
+                                      <button
+                                        type="button"
+                                        onClick={() => removeDish(dish.id)}
+                                        className="text-xs text-slate-400 hover:text-red-600 flex items-center gap-1 cursor-pointer transition-colors"
+                                        title="Eliminar plato"
+                                      >
+                                        <Trash2 size={14} />
+                                        <span className="text-[11px]">Eliminar</span>
+                                      </button>
+                                    </div>
 
-                                  <div className="flex items-start gap-3">
-                                    {/* UPLOADER DE FOTO DEL PLATO */}
-                                    <DishImageUpload
-                                      value={dish.imageUrl}
-                                      onChange={(url) => updateDish(dish.id, 'imageUrl', url)}
-                                      clientFolder={getClientFolderName()}
-                                      dishName={dish.name}
-                                    />
-
-                                    {/* CAMPOS DEL PLATO */}
-                                    <div className="flex-1 flex flex-col gap-2 min-w-0">
-                                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                        <div className="sm:col-span-2">
-                                          <input
-                                            type="text"
-                                            value={dish.name}
-                                            onChange={(e) => updateDish(dish.id, 'name', e.target.value)}
-                                            placeholder="Nombre del plato (Requerido) *"
-                                            className="w-full h-11 bg-white border border-slate-200 focus:border-slate-900 rounded-xl px-3.5 text-base sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 outline-none"
-                                          />
-                                        </div>
-
-                                        <div>
-                                          <input
-                                            type="text"
-                                            value={dish.price}
-                                            onChange={(e) => updateDish(dish.id, 'price', e.target.value)}
-                                            placeholder="Precio $ *"
-                                            className="w-full h-11 bg-white border border-slate-200 focus:border-slate-900 rounded-xl px-3.5 text-base sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 outline-none"
-                                          />
-                                        </div>
-                                      </div>
-
-                                      <input
-                                        type="text"
-                                        value={dish.description || ''}
-                                        onChange={(e) => updateDish(dish.id, 'description', e.target.value)}
-                                        placeholder="Descripción breve (Opcional, ej: Ingredientes o guarnición)"
-                                        className="w-full h-10 bg-white border border-slate-200 focus:border-slate-900 rounded-xl px-3.5 text-base sm:text-xs font-medium text-slate-700 placeholder:text-slate-400 outline-none"
+                                    <div className="flex items-start gap-3">
+                                      {/* UPLOADER DE FOTO DEL PLATO A CLOUDINARY */}
+                                      <DishImageUpload
+                                        value={dish.imageUrl}
+                                        onChange={(url) => updateDish(dish.id, 'imageUrl', url)}
+                                        clientFolder={getClientFolderName()}
+                                        dishName={dish.name}
                                       />
+
+                                      {/* CAMPOS DEL PLATO CON PLACEHOLDERS REALISTAS */}
+                                      <div className="flex-1 flex flex-col gap-2 min-w-0">
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                          <div className="sm:col-span-2">
+                                            <input
+                                              type="text"
+                                              value={dish.name}
+                                              onChange={(e) => updateDish(dish.id, 'name', e.target.value)}
+                                              placeholder={
+                                                cat.toLowerCase().includes('bebid')
+                                                  ? 'Ej: Gaseosa 500ml, Cerveza Artesanal'
+                                                  : cat.toLowerCase().includes('pizz')
+                                                  ? 'Ej: Pizza Muzzarella con Aceitunas'
+                                                  : cat.toLowerCase().includes('empanad')
+                                                  ? 'Ej: Empanada de Carne Cortada a Cuchillo'
+                                                  : cat.toLowerCase().includes('postr')
+                                                  ? 'Ej: Flan Casero con Dulce de Leche'
+                                                  : 'Ej: Hamburguesa Doble Cheddar'
+                                              }
+                                              className="w-full h-11 bg-white border border-slate-200 focus:border-slate-900 rounded-xl px-3.5 text-base sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 outline-none"
+                                            />
+                                          </div>
+
+                                          <div>
+                                            <input
+                                              type="text"
+                                              value={dish.price}
+                                              onChange={(e) => updateDish(dish.id, 'price', e.target.value)}
+                                              placeholder="Ej: $8.500"
+                                              className="w-full h-11 bg-white border border-slate-200 focus:border-slate-900 rounded-xl px-3.5 text-base sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 outline-none"
+                                            />
+                                          </div>
+                                        </div>
+
+                                        <input
+                                          type="text"
+                                          value={dish.description || ''}
+                                          onChange={(e) => updateDish(dish.id, 'description', e.target.value)}
+                                          placeholder={
+                                            cat.toLowerCase().includes('bebid')
+                                              ? 'Ej: Presentación 500ml en botella o lata fría (opcional)'
+                                              : 'Ej: Doble medallón 120g, queso cheddar y pan de papa (opcional)'
+                                          }
+                                          className="w-full h-10 bg-white border border-slate-200 focus:border-slate-900 rounded-xl px-3.5 text-base sm:text-xs font-medium text-slate-700 placeholder:text-slate-400 outline-none"
+                                        />
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              ))}
-                            </div>
+                                ))}
+                              </div>
+                            )}
 
                             {/* BOTÓN SECUNDARIO */}
                             <button
@@ -1755,6 +1796,18 @@ export default function Wizard() {
                           </div>
                         );
                       })}
+
+                      {/* ACCESO RÁPIDO PARA AGREGAR OTRA CATEGORÍA DESDE 7B */}
+                      <div className="flex items-center justify-center p-3.5 rounded-2xl border border-dashed border-slate-300 bg-white/60 hover:bg-white transition-colors">
+                        <button
+                          type="button"
+                          onClick={() => setCatalogSubStep(0)}
+                          className="text-xs font-bold text-slate-700 hover:text-slate-950 flex items-center gap-2 cursor-pointer"
+                        >
+                          <Plus size={15} />
+                          <span>+ Sumar otra categoría de platos a la carta</span>
+                        </button>
+                      </div>
 
                       {/* BOTÓN CONTINUAR A 7C */}
                       <div className="pt-2 flex items-center justify-between gap-3">
@@ -1770,9 +1823,9 @@ export default function Wizard() {
                         <button
                           type="button"
                           onClick={() => setCatalogSubStep(2)}
-                          disabled={data.dishesList.filter((d) => d.name.trim() !== '').length === 0}
+                          disabled={data.dishesList.filter((d) => d.name.trim() !== '' && d.price.trim() !== '').length === 0}
                           className={`h-12 px-6 rounded-2xl font-bold text-xs sm:text-sm flex items-center gap-2 transition-all ${
-                            data.dishesList.filter((d) => d.name.trim() !== '').length > 0
+                            data.dishesList.filter((d) => d.name.trim() !== '' && d.price.trim() !== '').length > 0
                               ? 'bg-slate-950 hover:bg-slate-900 text-white cursor-pointer shadow-md'
                               : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                           }`}
@@ -1878,7 +1931,7 @@ export default function Wizard() {
                         </div>
                       )}
 
-                      <div className="pt-2 flex items-center justify-between">
+                      <div className="pt-2 flex items-center justify-between gap-3">
                         <button
                           type="button"
                           onClick={() => setCatalogSubStep(1)}
@@ -1886,6 +1939,20 @@ export default function Wizard() {
                         >
                           <ArrowLeft size={15} />
                           <span>Volver a Platos</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={nextStep}
+                          disabled={data.featuredDishIds.length === 0}
+                          className={`h-12 px-6 rounded-2xl font-bold text-xs sm:text-sm flex items-center gap-2 transition-all ${
+                            data.featuredDishIds.length > 0
+                              ? 'bg-slate-950 hover:bg-slate-900 text-white cursor-pointer shadow-md'
+                              : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                          }`}
+                        >
+                          <span>Continuar a Logística</span>
+                          <ArrowRight size={15} />
                         </button>
                       </div>
                     </motion.div>
@@ -2028,37 +2095,43 @@ export default function Wizard() {
                         </div>
 
                         <div className="flex flex-col gap-2.5">
-                          {data.deliveryZones.map((zone, idx) => (
-                            <div
-                              key={zone.id || idx}
-                              className="flex flex-col sm:flex-row sm:items-center gap-2 p-2.5 rounded-2xl bg-slate-50 border border-slate-200"
-                            >
-                              <input
-                                type="text"
-                                value={zone.name}
-                                onChange={(e) => updateDeliveryZone(idx, 'name', e.target.value)}
-                                placeholder="Ej: Palermo, San Isidro, Ramos Mejía"
-                                className="w-full flex-1 h-11 bg-white border border-slate-200 rounded-xl px-3 text-base sm:text-sm font-semibold text-slate-900 focus:border-slate-900 outline-none"
-                              />
-                              <div className="flex items-center gap-2 w-full sm:w-auto">
+                          {data.deliveryZones.length === 0 ? (
+                            <div className="p-4 rounded-2xl border border-dashed border-slate-300 text-center text-xs text-slate-500 bg-white/60">
+                              No tenés zonas de envío configuradas todavía. Hacé clic arriba en <strong className="text-slate-800">+ Agregar Zona de Envío</strong> para definir barrios y tarifas.
+                            </div>
+                          ) : (
+                            data.deliveryZones.map((zone, idx) => (
+                              <div
+                                key={zone.id || idx}
+                                className="flex flex-col sm:flex-row sm:items-center gap-2 p-2.5 rounded-2xl bg-slate-50 border border-slate-200"
+                              >
                                 <input
                                   type="text"
-                                  value={zone.cost}
-                                  onChange={(e) => updateDeliveryZone(idx, 'cost', e.target.value)}
-                                  placeholder="$2.500"
-                                  className="flex-1 sm:w-32 h-11 bg-white border border-slate-200 rounded-xl px-3 text-base sm:text-sm font-bold text-slate-900 focus:border-slate-900 outline-none"
+                                  value={zone.name}
+                                  onChange={(e) => updateDeliveryZone(idx, 'name', e.target.value)}
+                                  placeholder="Ej: Palermo, San Isidro, Ramos Mejía"
+                                  className="w-full flex-1 h-11 bg-white border border-slate-200 rounded-xl px-3 text-base sm:text-sm font-semibold text-slate-900 focus:border-slate-900 outline-none"
                                 />
-                                <button
-                                  type="button"
-                                  onClick={() => removeDeliveryZone(idx)}
-                                  className="w-11 h-11 rounded-xl bg-white hover:bg-red-50 text-slate-400 hover:text-red-600 border border-slate-200 flex items-center justify-center transition-all cursor-pointer shrink-0"
-                                  title="Eliminar fila de zona"
-                                >
-                                  <Trash2 size={16} />
-                                </button>
+                                <div className="flex items-center gap-2 w-full sm:w-auto">
+                                  <input
+                                    type="text"
+                                    value={zone.cost}
+                                    onChange={(e) => updateDeliveryZone(idx, 'cost', e.target.value)}
+                                    placeholder="$2.500"
+                                    className="flex-1 sm:w-32 h-11 bg-white border border-slate-200 rounded-xl px-3 text-base sm:text-sm font-bold text-slate-900 focus:border-slate-900 outline-none"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => removeDeliveryZone(idx)}
+                                    className="w-11 h-11 rounded-xl bg-white hover:bg-red-50 text-slate-400 hover:text-red-600 border border-slate-200 flex items-center justify-center transition-all cursor-pointer shrink-0"
+                                    title="Eliminar fila de zona"
+                                  >
+                                    <Trash2 size={16} />
+                                  </button>
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            ))
+                          )}
                         </div>
                       </div>
                     )}
