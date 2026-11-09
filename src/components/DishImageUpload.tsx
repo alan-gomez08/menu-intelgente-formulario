@@ -139,7 +139,7 @@ export default function DishImageUpload({ value, onChange, clientFolder, dishNam
           ) : (
             <>
               <Camera size={18} className="text-slate-400 group-hover:text-slate-700" />
-              <span className="text-[10px] font-bold text-slate-500">+ Foto</span>
+              <span className="text-[10px] font-bold text-slate-500">Foto</span>
             </>
           )}
           <input

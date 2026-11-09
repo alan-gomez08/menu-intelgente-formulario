@@ -79,7 +79,7 @@ export const FloatingWhatsAppSupport: React.FC<FloatingWhatsAppSupportProps> = (
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* BURBUJA ANIMADA DE ASISTENCIA */}
+      {/* BURBUJA ANIMADA DE ASISTENCIA (SOLO DESKTOP PARA NO OBSTRUIR PANTALLA MOBILE) */}
       <AnimatePresence>
         {isBubbleVisible && (
           <motion.div
@@ -87,7 +87,7 @@ export const FloatingWhatsAppSupport: React.FC<FloatingWhatsAppSupportProps> = (
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: 12, scale: 0.92 }}
             transition={{ type: 'spring', damping: 22, stiffness: 320 }}
-            className="pointer-events-auto relative flex items-center gap-2 bg-slate-950/95 text-white backdrop-blur-xl border border-slate-800/90 shadow-[0_12px_35px_-8px_rgba(15,23,42,0.35)] rounded-2xl py-2 px-3 max-w-[175px] xs:max-w-[210px] sm:max-w-[270px] cursor-pointer group transition-all"
+            className="hidden sm:flex pointer-events-auto relative items-center gap-2 bg-slate-950/95 text-white backdrop-blur-xl border border-slate-800/90 shadow-[0_12px_35px_-8px_rgba(15,23,42,0.35)] rounded-2xl py-2 px-3 max-w-[270px] cursor-pointer group transition-all"
             onClick={() => window.open(whatsappUrl, '_blank', 'noopener,noreferrer')}
             role="alert"
           >
@@ -99,11 +99,11 @@ export const FloatingWhatsAppSupport: React.FC<FloatingWhatsAppSupportProps> = (
 
             {/* TEXTO DE LLAMADO A LA ACCIÓN */}
             <div className="flex flex-col min-w-0 pr-0.5">
-              <span className="text-[11px] sm:text-xs font-bold text-white leading-tight flex items-center gap-1 truncate">
+              <span className="text-xs font-bold text-white leading-tight flex items-center gap-1 truncate">
                 <WhatsAppIcon size={13} className="text-[#25D366] shrink-0" />
                 <span>¿Dudas o ayuda?</span>
               </span>
-              <span className="text-[10px] sm:text-[11px] text-slate-400 leading-tight truncate group-hover:text-slate-200 transition-colors">
+              <span className="text-[11px] text-slate-400 leading-tight truncate group-hover:text-slate-200 transition-colors">
                 Contactar por WhatsApp
               </span>
             </div>
@@ -132,14 +132,14 @@ export const FloatingWhatsAppSupport: React.FC<FloatingWhatsAppSupportProps> = (
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: 'spring', damping: 20, stiffness: 280, delay: 0.3 }}
         whileHover={{ scale: 1.08 }}
-        whileTap={{ scale: 0.94 }}
-        className="pointer-events-auto relative w-12 h-12 sm:w-[56px] sm:h-[56px] rounded-full bg-[#25D366] hover:bg-[#20ba5a] text-white flex items-center justify-center shadow-[0_8px_25px_rgba(37,211,102,0.45)] hover:shadow-[0_12px_32px_rgba(37,211,102,0.6)] border-2 border-white/50 transition-all cursor-pointer group shrink-0"
+        whileTap={{ scale: 0.92 }}
+        className="pointer-events-auto relative w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-[#25D366] hover:bg-[#20ba5a] text-white flex items-center justify-center shadow-[0_6px_20px_rgba(37,211,102,0.4)] hover:shadow-[0_10px_28px_rgba(37,211,102,0.55)] border-2 border-white/60 transition-all cursor-pointer group shrink-0"
       >
         {/* RESPLANDOR PULSANTE DISCRETO */}
         <span className="absolute inset-0 rounded-full bg-[#25D366]/40 animate-ping -z-10 pointer-events-none opacity-40 group-hover:opacity-75" />
 
         {/* ÍCONO OFICIAL DE WHATSAPP */}
-        <WhatsAppIcon size={26} className="text-white drop-shadow-sm transition-transform duration-200 group-hover:scale-110 sm:hidden" />
+        <WhatsAppIcon size={24} className="text-white drop-shadow-sm transition-transform duration-200 group-hover:scale-110 sm:hidden" />
         <WhatsAppIcon size={29} className="text-white drop-shadow-sm transition-transform duration-200 group-hover:scale-110 hidden sm:block" />
       </motion.a>
     </div>

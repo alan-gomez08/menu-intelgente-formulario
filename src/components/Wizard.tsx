@@ -792,7 +792,7 @@ export default function Wizard() {
           </motion.div>
         </main>
       ) : (
-        <main className="w-full max-w-3xl flex flex-col pb-36 sm:pb-32 mt-1 sm:mt-4 px-0 transition-all duration-300">
+        <main className="w-full max-w-3xl flex flex-col pb-44 sm:pb-32 mt-1 sm:mt-4 px-0 transition-all duration-300">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={currentStep.id}
@@ -816,14 +816,14 @@ export default function Wizard() {
               {/* ============================================================ */}
               {currentStep.id === 'PURCHASE_VALIDATION' && (
                 <div className="flex flex-col gap-4 sm:gap-6 py-2">
-                  <div className="flex flex-col gap-1.5 sm:gap-2">
-                    <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
+                  <div className="flex flex-col gap-1 sm:gap-2">
+                    <span className="text-[11px] sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
                       Paso 01 · Identidad
                     </span>
-                    <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-[1.15]">
+                    <h2 className="text-xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-snug">
                       ¿Cuál es tu usuario de Mercado Libre o email?
                     </h2>
-                    <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
+                    <p className="text-xs sm:text-base text-slate-500 leading-relaxed">
                       Lo necesitamos para asociar esta configuración a tu compra de forma inmediata y segura.
                     </p>
                   </div>
@@ -859,14 +859,14 @@ export default function Wizard() {
               {/* ============================================================ */}
               {currentStep.id === 'RESTAURANT_IDENTITY' && (
                 <div className="flex flex-col gap-4 sm:gap-6 py-2">
-                  <div className="flex flex-col gap-1.5 sm:gap-2">
-                    <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
+                  <div className="flex flex-col gap-1 sm:gap-2">
+                    <span className="text-[11px] sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
                       Paso 02 · Identidad
                     </span>
-                    <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-[1.15]">
+                    <h2 className="text-xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-snug">
                       ¿Cómo se llama tu local gastronómico?
                     </h2>
-                    <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
+                    <p className="text-xs sm:text-base text-slate-500 leading-relaxed">
                       Aparecerá en el encabezado oficial de tu menú web, pestaña del navegador y enlaces para tus clientes.
                     </p>
                   </div>
@@ -902,14 +902,14 @@ export default function Wizard() {
               {/* ============================================================ */}
               {currentStep.id === 'LOGO_UPLOAD' && (
                 <div className="flex flex-col gap-4 sm:gap-6 py-2">
-                  <div className="flex flex-col gap-1.5 sm:gap-2">
-                    <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
+                  <div className="flex flex-col gap-1 sm:gap-2">
+                    <span className="text-[11px] sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
                       Paso 03 · Identidad
                     </span>
-                    <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-[1.15]">
+                    <h2 className="text-xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-snug">
                       Subí el logotipo oficial de tu marca
                     </h2>
-                    <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
+                    <p className="text-xs sm:text-base text-slate-500 leading-relaxed">
                       Soportamos imágenes PNG o JPG. Nuestro equipo lo adaptará para que se vea perfecto en teléfonos y computadoras.
                     </p>
                   </div>
@@ -953,15 +953,15 @@ export default function Wizard() {
               {/* PASO 4: Estilo Visual (Configuración UI del menú) */}
               {/* ============================================================ */}
               {currentStep.id === 'VISUAL_STYLE' && (
-                <div className="flex flex-col gap-6 py-2">
-                  <div className="flex flex-col gap-2">
-                    <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
+                <div className="flex flex-col gap-4 sm:gap-6 py-2">
+                  <div className="flex flex-col gap-1 sm:gap-2">
+                    <span className="text-[11px] sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
                       Paso 04 · Diseño
                     </span>
-                    <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-[1.15]">
+                    <h2 className="text-xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-snug">
                       Estilo visual: Colores y Tono
                     </h2>
-                    <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
+                    <p className="text-xs sm:text-base text-slate-500 leading-relaxed">
                       Definí cómo se verá tu menú en la pantalla de tus clientes. Mirá el resultado en vivo en la maqueta.
                     </p>
                   </div>
@@ -1167,15 +1167,15 @@ export default function Wizard() {
               {/* PASO 5: MODELO DE NEGOCIO Y SUSCRIPCIÓN (ÍCONOS HOMOGENEIZADOS) */}
               {/* ============================================================ */}
               {currentStep.id === 'MANAGEMENT_PLAN' && (
-                <div className="flex flex-col gap-6 py-2">
-                  <div className="flex flex-col gap-2">
-                    <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
+                <div className="flex flex-col gap-4 sm:gap-6 py-2">
+                  <div className="flex flex-col gap-1 sm:gap-2">
+                    <span className="text-[11px] sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
                       Paso 05 · Modelo de Negocio & Suscripción
                     </span>
-                    <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-[1.15]">
+                    <h2 className="text-xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-snug">
                       ¿Cómo preferís gestionar tu Menú de ahora en más?
                     </h2>
-                    <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
+                    <p className="text-xs sm:text-base text-slate-500 leading-relaxed">
                       Elegí si querés administrar los precios por tu cuenta o si preferís que nuestro equipo técnico se ocupe de todo.
                     </p>
                   </div>
@@ -1468,15 +1468,15 @@ export default function Wizard() {
               {/* PASO 6: CREADOR DE CATÁLOGO (CON CARGA DE IMAGEN POR PLATO) */}
               {/* ============================================================ */}
               {currentStep.id === 'CATALOG_SETUP' && (
-                <div className="flex flex-col gap-6 py-2">
-                  <div className="flex flex-col gap-2">
-                    <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
+                <div className="flex flex-col gap-4 sm:gap-6 py-2">
+                  <div className="flex flex-col gap-1 sm:gap-2">
+                    <span className="text-[11px] sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
                       Paso 06 · Creador de Catálogo
                     </span>
-                    <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-[1.15]">
+                    <h2 className="text-xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-snug">
                       Estructura de tu Menú y Precios
                     </h2>
-                    <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
+                    <p className="text-xs sm:text-base text-slate-500 leading-relaxed">
                       Cargá tus categorías, agregá tus platos con sus fotos y elegí hasta 6 destacados para la portada.
                     </p>
                   </div>
@@ -1486,7 +1486,7 @@ export default function Wizard() {
                     <button
                       type="button"
                       onClick={() => setCatalogSubStep(0)}
-                      className={`flex-1 py-2 sm:py-2.5 px-1.5 sm:px-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1 sm:gap-1.5 ${
+                      className={`flex-1 py-2 sm:py-2.5 px-1.5 sm:px-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1 sm:gap-1.5 active:scale-98 ${
                         catalogSubStep === 0
                           ? 'bg-white text-slate-950 shadow-sm'
                           : 'text-slate-600 hover:text-slate-950'
@@ -1503,7 +1503,7 @@ export default function Wizard() {
                         if (data.categoriesList.length > 0) setCatalogSubStep(1);
                       }}
                       disabled={data.categoriesList.length === 0}
-                      className={`flex-1 py-2 sm:py-2.5 px-1.5 sm:px-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1 sm:gap-1.5 ${
+                      className={`flex-1 py-2 sm:py-2.5 px-1.5 sm:px-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1 sm:gap-1.5 active:scale-98 ${
                         catalogSubStep === 1
                           ? 'bg-white text-slate-950 shadow-sm'
                           : data.categoriesList.length === 0
@@ -1523,7 +1523,7 @@ export default function Wizard() {
                         if (valid.length > 0) setCatalogSubStep(2);
                       }}
                       disabled={data.dishesList.filter((d) => d.name.trim() !== '' && d.price.trim() !== '').length === 0}
-                      className={`flex-1 py-2 sm:py-2.5 px-1.5 sm:px-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1 sm:gap-1.5 ${
+                      className={`flex-1 py-2 sm:py-2.5 px-1.5 sm:px-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1 sm:gap-1.5 active:scale-98 ${
                         catalogSubStep === 2
                           ? 'bg-white text-slate-950 shadow-sm'
                           : data.dishesList.filter((d) => d.name.trim() !== '' && d.price.trim() !== '').length === 0
@@ -1645,13 +1645,13 @@ export default function Wizard() {
                           type="button"
                           onClick={() => setCatalogSubStep(1)}
                           disabled={data.categoriesList.length === 0}
-                          className={`w-full sm:w-auto h-12 px-6 rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
+                          className={`w-full sm:w-auto h-12 px-6 rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-98 ${
                             data.categoriesList.length > 0
                               ? 'bg-slate-950 hover:bg-slate-900 text-white cursor-pointer shadow-md'
                               : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                           }`}
                         >
-                          <span>Continuar a Carga de Platos (7B)</span>
+                          <span>Continuar a Platos (7B)</span>
                           <ArrowRight size={15} />
                         </button>
                       </div>
@@ -1669,21 +1669,21 @@ export default function Wizard() {
                       exit={{ opacity: 0, y: -10 }}
                       className="flex flex-col gap-4 sm:gap-5"
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex flex-col">
-                          <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex flex-col min-w-0">
+                          <h3 className="text-base sm:text-xl font-black text-slate-900 tracking-tight truncate">
                             7B. Carga de Platos y Fotos
                           </h3>
-                          <p className="text-xs text-slate-500">
+                          <p className="text-[11px] sm:text-xs text-slate-500">
                             Ingresá los productos de cada categoría, subí su foto y definí precios.
                           </p>
                         </div>
                         <button
                           type="button"
                           onClick={() => setCatalogSubStep(0)}
-                          className="text-xs font-bold text-slate-600 hover:text-slate-950 underline cursor-pointer"
+                          className="shrink-0 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-xl transition-colors cursor-pointer active:scale-95"
                         >
-                          Editar Categorías
+                          Categorías
                         </button>
                       </div>
 
@@ -1693,14 +1693,16 @@ export default function Wizard() {
                         return (
                           <div
                             key={cat}
-                            className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-xs flex flex-col gap-3.5 sm:gap-4 border border-slate-200/90"
+                            className="glass-panel rounded-2xl sm:rounded-3xl p-3.5 sm:p-7 shadow-xs flex flex-col gap-3 sm:gap-4 border border-slate-200/90"
                           >
-                            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                              <h4 className="text-sm sm:text-base font-black text-slate-900 flex items-center gap-2">
-                                <span className="w-2.5 h-2.5 rounded-full bg-slate-950" />
-                                <span>Agregá los platos para: <span className="text-amber-800">{cat}</span></span>
-                              </h4>
-                              <span className="text-xs font-semibold text-slate-400">
+                            <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className="w-2.5 h-2.5 rounded-full bg-slate-950 shrink-0" />
+                                <h4 className="text-sm sm:text-base font-black text-slate-900 truncate">
+                                  Platos de <span className="text-amber-800">{cat}</span>
+                                </h4>
+                              </div>
+                              <span className="text-[11px] sm:text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 shrink-0">
                                 {categoryDishes.length} {categoryDishes.length === 1 ? 'plato' : 'platos'}
                               </span>
                             </div>
@@ -1714,10 +1716,10 @@ export default function Wizard() {
                                 <button
                                   type="button"
                                   onClick={() => addDishToCategory(cat)}
-                                  className="px-4 py-2.5 rounded-xl bg-slate-950 hover:bg-slate-900 text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                                  className="px-4 py-2.5 rounded-xl bg-slate-950 hover:bg-slate-900 text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs active:scale-95"
                                 >
                                   <Plus size={14} />
-                                  <span>+ Agregar primer plato a {cat}</span>
+                                  <span>Agregar primer plato a {cat}</span>
                                 </button>
                               </div>
                             ) : (
@@ -1726,20 +1728,25 @@ export default function Wizard() {
                                 {categoryDishes.map((dish, dIdx) => (
                                   <div
                                     key={dish.id}
-                                    className="p-3 sm:p-4 rounded-2xl bg-slate-50/90 border border-slate-200 flex flex-col gap-2.5 sm:gap-3 transition-all"
+                                    className="p-3 sm:p-4 rounded-2xl bg-white sm:bg-slate-50/80 border border-slate-200/90 shadow-2xs sm:shadow-none flex flex-col gap-3 transition-all"
                                   >
-                                    <div className="flex items-center justify-between gap-2">
-                                      <span className="text-[11px] font-bold text-slate-400 uppercase">
-                                        Plato #{dIdx + 1} en {cat}
-                                      </span>
+                                    <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-100">
+                                      <div className="flex items-center gap-2">
+                                        <span className="px-2 py-0.5 rounded-md bg-slate-900 text-white text-[10px] sm:text-[11px] font-black tracking-wide uppercase">
+                                          Plato #{dIdx + 1}
+                                        </span>
+                                        <span className="text-[11px] font-medium text-slate-400 hidden xs:inline truncate">
+                                          en {cat}
+                                        </span>
+                                      </div>
                                       <button
                                         type="button"
                                         onClick={() => removeDish(dish.id)}
-                                        className="text-xs text-slate-400 hover:text-red-600 flex items-center gap-1 cursor-pointer transition-colors"
+                                        className="text-xs text-slate-400 hover:text-red-600 active:text-red-700 flex items-center gap-1 cursor-pointer transition-colors py-0.5 px-2 rounded-lg hover:bg-red-50"
                                         title="Eliminar plato"
                                       >
-                                        <Trash2 size={14} />
-                                        <span className="text-[11px]">Eliminar</span>
+                                        <Trash2 size={13} className="text-red-500 sm:text-slate-400" />
+                                        <span className="text-[11px] font-semibold text-red-600 sm:text-slate-500">Eliminar</span>
                                       </button>
                                     </div>
 
@@ -1752,20 +1759,25 @@ export default function Wizard() {
                                           clientFolder={getClientFolderName()}
                                           dishName={dish.name}
                                         />
-                                        <div className="sm:hidden flex flex-col min-w-0">
-                                          <span className="text-xs font-bold text-slate-800">
-                                            {dish.imageUrl ? 'Foto del plato cargada' : 'Foto del plato (opcional)'}
+                                        <div className="sm:hidden flex flex-col justify-center min-w-0">
+                                          <span className="text-xs font-bold text-slate-900 leading-tight">
+                                            {dish.imageUrl ? '✓ Foto agregada' : 'Foto del plato'}
                                           </span>
-                                          <span className="text-[11px] text-slate-500">
-                                            {dish.imageUrl ? 'Tocá para cambiar o quitar' : 'Tocá para subir foto PNG/JPG'}
+                                          <span className="text-[11px] text-slate-500 leading-tight mt-0.5">
+                                            {dish.imageUrl ? 'Tocá la miniatura para cambiar' : 'Opcional (PNG o JPG)'}
                                           </span>
                                         </div>
                                       </div>
 
-                                      {/* CAMPOS DEL PLATO CON PLACEHOLDERS REALISTAS */}
-                                      <div className="flex-1 flex flex-col gap-2 min-w-0 w-full">
-                                        <div className="grid grid-cols-3 gap-2">
-                                          <div className="col-span-2">
+                                      {/* CAMPOS CON LABELS Y TOUCH TARGETS PERFECTOS */}
+                                      <div className="flex-1 flex flex-col gap-2.5 min-w-0 w-full">
+                                        {/* NOMBRE Y PRECIO */}
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-2">
+                                          {/* NOMBRE DEL PLATO */}
+                                          <div className="sm:col-span-2 flex flex-col gap-1">
+                                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                                              Nombre del plato *
+                                            </label>
                                             <input
                                               type="text"
                                               value={dish.name}
@@ -1781,32 +1793,48 @@ export default function Wizard() {
                                                   ? 'Ej: Flan Casero'
                                                   : 'Ej: Hamburguesa Doble Cheddar'
                                               }
-                                              className="w-full h-11 bg-white border border-slate-200 focus:border-slate-900 rounded-xl px-3 text-base sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 outline-none"
+                                              className="w-full h-11 bg-slate-50 sm:bg-white border border-slate-200 focus:border-slate-900 focus:bg-white rounded-xl px-3 text-base sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 outline-none transition-colors"
                                             />
                                           </div>
 
-                                          <div className="col-span-1">
-                                            <input
-                                              type="text"
-                                              value={dish.price}
-                                              onChange={(e) => updateDish(dish.id, 'price', e.target.value)}
-                                              placeholder="Ej: $8.500"
-                                              className="w-full h-11 bg-white border border-slate-200 focus:border-slate-900 rounded-xl px-2.5 sm:px-3 text-base sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 outline-none text-right sm:text-left"
-                                            />
+                                          {/* PRECIO ($) */}
+                                          <div className="sm:col-span-1 flex flex-col gap-1">
+                                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                                              Precio ($) *
+                                            </label>
+                                            <div className="relative flex items-center">
+                                              <span className="absolute left-3 text-xs font-bold text-slate-400 pointer-events-none">$</span>
+                                              <input
+                                                type="text"
+                                                value={dish.price.replace(/^\$\s*/, '')}
+                                                onChange={(e) => {
+                                                  const val = e.target.value;
+                                                  updateDish(dish.id, 'price', val ? `$${val.replace(/^\$\s*/, '')}` : '');
+                                                }}
+                                                placeholder="8.500"
+                                                className="w-full h-11 bg-slate-50 sm:bg-white border border-slate-200 focus:border-slate-900 focus:bg-white rounded-xl pl-6 pr-3 text-base sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 outline-none transition-colors"
+                                              />
+                                            </div>
                                           </div>
                                         </div>
 
-                                        <input
-                                          type="text"
-                                          value={dish.description || ''}
-                                          onChange={(e) => updateDish(dish.id, 'description', e.target.value)}
-                                          placeholder={
-                                            cat.toLowerCase().includes('bebid')
-                                              ? 'Ej: Presentación 500ml fría (opcional)'
-                                              : 'Ej: Doble medallón 120g, cheddar y pan de papa (opcional)'
-                                          }
-                                          className="w-full h-10 bg-white border border-slate-200 focus:border-slate-900 rounded-xl px-3 text-base sm:text-xs font-medium text-slate-700 placeholder:text-slate-400 outline-none"
-                                        />
+                                        {/* DESCRIPCIÓN */}
+                                        <div className="flex flex-col gap-1">
+                                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                            Descripción o ingredientes (opcional)
+                                          </label>
+                                          <input
+                                            type="text"
+                                            value={dish.description || ''}
+                                            onChange={(e) => updateDish(dish.id, 'description', e.target.value)}
+                                            placeholder={
+                                              cat.toLowerCase().includes('bebid')
+                                                ? 'Ej: Presentación 500ml fría (opcional)'
+                                                : 'Ej: Doble medallón 120g, cheddar y pan de papa (opcional)'
+                                            }
+                                            className="w-full h-10 bg-slate-50 sm:bg-white border border-slate-200 focus:border-slate-900 focus:bg-white rounded-xl px-3 text-base sm:text-xs font-medium text-slate-700 placeholder:text-slate-400 outline-none transition-colors"
+                                          />
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
@@ -1818,24 +1846,24 @@ export default function Wizard() {
                             <button
                               type="button"
                               onClick={() => addDishToCategory(cat)}
-                              className="w-full py-3 rounded-2xl bg-white hover:bg-slate-50 border border-dashed border-slate-300 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                              className="w-full py-3 rounded-2xl bg-white hover:bg-slate-50 border border-dashed border-slate-300 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-98"
                             >
                               <Plus size={15} />
-                              <span>+ Agregar otro plato a {cat}</span>
+                              <span>Agregar otro plato a {cat}</span>
                             </button>
                           </div>
                         );
                       })}
 
                       {/* ACCESO RÁPIDO PARA AGREGAR OTRA CATEGORÍA DESDE 7B */}
-                      <div className="flex items-center justify-center p-3.5 rounded-2xl border border-dashed border-slate-300 bg-white/60 hover:bg-white transition-colors">
+                      <div className="flex items-center justify-center p-3 rounded-2xl border border-dashed border-slate-300 bg-white/60 hover:bg-white transition-colors">
                         <button
                           type="button"
                           onClick={() => setCatalogSubStep(0)}
-                          className="text-xs font-bold text-slate-700 hover:text-slate-950 flex items-center gap-2 cursor-pointer"
+                          className="text-xs font-bold text-slate-700 hover:text-slate-950 flex items-center gap-2 cursor-pointer active:scale-98"
                         >
                           <Plus size={15} />
-                          <span>+ Sumar otra categoría de platos a la carta</span>
+                          <span>Sumar otra categoría a la carta</span>
                         </button>
                       </div>
 
@@ -1844,7 +1872,7 @@ export default function Wizard() {
                         <button
                           type="button"
                           onClick={() => setCatalogSubStep(0)}
-                          className="w-full sm:w-auto h-12 px-5 rounded-2xl border border-slate-200 hover:bg-slate-50 font-semibold text-xs text-slate-700 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                          className="w-full sm:w-auto h-12 px-5 rounded-2xl border border-slate-200 hover:bg-slate-50 font-semibold text-xs text-slate-700 flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-98"
                         >
                           <ArrowLeft size={15} />
                           <span>Volver a Categorías</span>
@@ -1854,7 +1882,7 @@ export default function Wizard() {
                           type="button"
                           onClick={() => setCatalogSubStep(2)}
                           disabled={data.dishesList.filter((d) => d.name.trim() !== '' && d.price.trim() !== '').length === 0}
-                          className={`w-full sm:w-auto h-12 px-6 rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
+                          className={`w-full sm:w-auto h-12 px-6 rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-98 ${
                             data.dishesList.filter((d) => d.name.trim() !== '' && d.price.trim() !== '').length > 0
                               ? 'bg-slate-950 hover:bg-slate-900 text-white cursor-pointer shadow-md'
                               : 'bg-slate-100 text-slate-400 cursor-not-allowed'
@@ -1994,15 +2022,15 @@ export default function Wizard() {
               {/* PASO 7: LOGÍSTICA Y ENVÍOS (SOLO DELIVERY Y RETIRO POR LOCAL) */}
               {/* ============================================================ */}
               {currentStep.id === 'LOGISTICS_WHATSAPP' && (
-                <div className="flex flex-col gap-6 py-2">
-                  <div className="flex flex-col gap-2">
-                    <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
+                <div className="flex flex-col gap-4 sm:gap-6 py-2">
+                  <div className="flex flex-col gap-1 sm:gap-2">
+                    <span className="text-[11px] sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
                       Paso 07 · Logística y Envíos
                     </span>
-                    <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-[1.15]">
+                    <h2 className="text-xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-snug">
                       Recepción de Pedidos y Envíos
                     </h2>
-                    <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
+                    <p className="text-xs sm:text-base text-slate-500 leading-relaxed">
                       Configurá el número al que tus clientes enviarán los pedidos y las modalidades de entrega habilitadas.
                     </p>
                   </div>
@@ -2117,17 +2145,17 @@ export default function Wizard() {
                           <button
                             type="button"
                             onClick={addDeliveryZone}
-                            className="w-full sm:w-auto px-4 py-2 sm:py-1.5 rounded-xl bg-slate-950 hover:bg-slate-900 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                            className="w-full sm:w-auto px-4 py-2 sm:py-1.5 rounded-xl bg-slate-950 hover:bg-slate-900 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs active:scale-95"
                           >
                             <Plus size={14} />
-                            <span>+ Agregar Zona de Envío</span>
+                            <span>Agregar Zona de Envío</span>
                           </button>
                         </div>
 
                         <div className="flex flex-col gap-2.5">
                           {data.deliveryZones.length === 0 ? (
                             <div className="p-4 rounded-2xl border border-dashed border-slate-300 text-center text-xs text-slate-500 bg-white/60">
-                              No tenés zonas de envío configuradas todavía. Hacé clic arriba en <strong className="text-slate-800">+ Agregar Zona de Envío</strong> para definir barrios y tarifas.
+                              No tenés zonas de envío configuradas todavía. Hacé clic arriba en <strong className="text-slate-800">Agregar Zona de Envío</strong> para definir barrios y tarifas.
                             </div>
                           ) : (
                             data.deliveryZones.map((zone, idx) => (
@@ -2174,14 +2202,14 @@ export default function Wizard() {
               {/* ============================================================ */}
               {currentStep.id === 'PAYMENT_METHODS' && (
                 <div className="flex flex-col gap-4 sm:gap-6 py-2">
-                  <div className="flex flex-col gap-1.5 sm:gap-2">
-                    <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
+                  <div className="flex flex-col gap-1 sm:gap-2">
+                    <span className="text-[11px] sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
                       Paso 08 · Checkout & Cobros
                     </span>
-                    <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-[1.15]">
+                    <h2 className="text-xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-snug">
                       ¿Cómo te van a pagar tus clientes?
                     </h2>
-                    <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
+                    <p className="text-xs sm:text-base text-slate-500 leading-relaxed">
                       Ingresá los datos de la cuenta a la que el cliente debe transferir.
                     </p>
                   </div>
@@ -2269,14 +2297,14 @@ export default function Wizard() {
               {/* ============================================================ */}
               {currentStep.id === 'CLOSING_TERMS' && (
                 <div className="flex flex-col gap-4 sm:gap-6 py-2">
-                  <div className="flex flex-col gap-1.5 sm:gap-2">
-                    <span className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
+                  <div className="flex flex-col gap-1 sm:gap-2">
+                    <span className="text-[11px] sm:text-sm font-bold text-slate-400 tracking-wider uppercase">
                       Paso 09 · Confirmación & Cierre
                     </span>
-                    <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-[1.15]">
+                    <h2 className="text-xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-snug">
                       Revisión Final y Puesta en Marcha
                     </h2>
-                    <p className="text-sm sm:text-base text-slate-500 leading-relaxed">
+                    <p className="text-xs sm:text-base text-slate-500 leading-relaxed">
                       Verificá los datos de tu Menú Digital antes de enviarlos a producción técnica.
                     </p>
                   </div>
@@ -2522,7 +2550,7 @@ export default function Wizard() {
               type="button"
               onClick={prevStep}
               disabled={currentStepIndex === 0 && (currentStep.id !== 'CATALOG_SETUP' || catalogSubStep === 0)}
-              className={`h-11 sm:h-12.5 px-3.5 sm:px-5 rounded-xl border font-semibold text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 shrink-0 transition-all ${
+              className={`h-12 sm:h-12.5 px-4 sm:px-5 rounded-xl border font-semibold text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 shrink-0 transition-all ${
                 currentStepIndex === 0 && (currentStep.id !== 'CATALOG_SETUP' || catalogSubStep === 0)
                   ? 'opacity-30 border-transparent text-slate-400 cursor-not-allowed'
                   : 'bg-white sm:bg-transparent border-slate-200/80 sm:border-transparent hover:border-slate-300 sm:hover:bg-slate-100 text-slate-700 hover:text-slate-950 active:scale-95 cursor-pointer shadow-2xs sm:shadow-none'
@@ -2568,7 +2596,7 @@ export default function Wizard() {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         disabled
-                        className="w-full sm:min-w-[190px] h-11 sm:h-12.5 px-4 sm:px-6 rounded-xl font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 bg-slate-100 text-slate-400 border border-slate-200/80 cursor-not-allowed select-none transition-all"
+                        className="w-full sm:min-w-[190px] h-12 sm:h-12.5 px-4 sm:px-6 rounded-xl font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 bg-slate-100 text-slate-400 border border-slate-200/80 cursor-not-allowed select-none transition-all"
                       >
                         <span className="truncate">Completá este paso</span>
                         <ArrowRight size={15} className="shrink-0 opacity-40" />
@@ -2582,7 +2610,7 @@ export default function Wizard() {
                         whileHover={{ scale: 1.01 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={nextStep}
-                        className="relative overflow-hidden w-full sm:min-w-[190px] h-11 sm:h-12.5 px-4 sm:px-7 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 bg-slate-950 hover:bg-slate-900 text-white cursor-pointer select-none group shadow-lg hover:shadow-xl border border-slate-800 transition-all"
+                        className="relative overflow-hidden w-full sm:min-w-[190px] h-12 sm:h-12.5 px-4 sm:px-7 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 bg-slate-950 hover:bg-slate-900 text-white cursor-pointer select-none group shadow-lg hover:shadow-xl border border-slate-800 transition-all"
                       >
                         <span className="absolute inset-0 -translate-x-full animate-[shimmer_2.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
                         <span className="truncate">{nextButtonText}</span>
