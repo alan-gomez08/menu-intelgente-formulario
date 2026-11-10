@@ -96,30 +96,20 @@ export default function DishImageUpload({ value, onChange, clientFolder, dishNam
   return (
     <div className="w-full">
       {value ? (
-        <div className="relative w-full h-44 sm:h-52 rounded-2xl overflow-hidden border border-slate-200 bg-slate-950 group shadow-xs">
+        <div className="relative w-full h-36 sm:h-44 rounded-xl overflow-hidden border border-slate-200 bg-slate-900 group">
           <img
             src={value}
             alt={dishName || 'Plato'}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className="w-full h-full object-cover"
           />
 
-          {/* OVERLAY SUTIL OSCURO PARA RESALTAR BOTONES */}
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-slate-950/40 pointer-events-none" />
-
-          {/* BADGE INFERIOR: ESTADO DE FOTO CARGADA */}
-          <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-full bg-slate-950/80 backdrop-blur-md text-white text-xs font-bold flex items-center gap-2 shadow-md pointer-events-none">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>Foto de plato lista</span>
-          </div>
-
           {/* ACCIONES SUPERIORES (CAMBIAR Y ELIMINAR FOTO) */}
-          <div className="absolute top-3 right-3 flex items-center gap-2 z-10">
-            {/* BOTÓN CAMBIAR FOTO */}
+          <div className="absolute top-2.5 right-2.5 flex items-center gap-2 z-10">
             <label
-              className="px-3.5 py-1.5 rounded-xl bg-white/95 hover:bg-white text-slate-900 backdrop-blur-md text-xs font-bold flex items-center gap-1.5 shadow-md hover:scale-105 active:scale-95 cursor-pointer transition-all border border-slate-200/80"
+              className="px-3 py-1.5 rounded-lg bg-white/90 hover:bg-white text-slate-800 text-xs font-semibold flex items-center gap-1.5 shadow-sm cursor-pointer transition-colors border border-slate-200/80"
               title="Cambiar fotografía"
             >
-              <Camera size={13} className="text-slate-700" />
+              <Camera size={13} className="text-slate-600" />
               <span>Cambiar foto</span>
               <input
                 type="file"
@@ -130,14 +120,13 @@ export default function DishImageUpload({ value, onChange, clientFolder, dishNam
               />
             </label>
 
-            {/* BOTÓN QUITAR FOTO */}
             <button
               type="button"
               onClick={() => onChange('')}
-              className="w-8 h-8 rounded-xl bg-white/95 hover:bg-rose-50 text-slate-500 hover:text-rose-600 backdrop-blur-md shadow-md flex items-center justify-center hover:scale-105 active:scale-95 cursor-pointer transition-all border border-slate-200/80"
+              className="w-7 h-7 rounded-lg bg-white/90 hover:bg-rose-50 text-slate-600 hover:text-rose-600 shadow-sm flex items-center justify-center cursor-pointer transition-colors border border-slate-200/80"
               title="Quitar fotografía"
             >
-              <X size={15} />
+              <X size={14} />
             </button>
           </div>
         </div>
@@ -147,34 +136,28 @@ export default function DishImageUpload({ value, onChange, clientFolder, dishNam
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
           onDrop={handleDrop}
-          className={`relative w-full h-40 sm:h-48 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-2.5 transition-all select-none ${
+          className={`relative w-full h-32 sm:h-36 rounded-xl border border-dashed flex flex-col items-center justify-center gap-2 transition-all select-none ${
             isDragging
-              ? 'border-slate-900 bg-slate-100 scale-[1.005]'
-              : 'border-slate-300 bg-slate-50/70 hover:bg-slate-100/90 hover:border-slate-400'
+              ? 'border-slate-900 bg-slate-100'
+              : 'border-slate-300 bg-slate-50/60 hover:bg-slate-100/70 hover:border-slate-400'
           } ${isUploading ? 'cursor-not-allowed opacity-75' : 'cursor-pointer'}`}
           title="Subir foto para este plato"
         >
           {isUploading ? (
-            <div className="flex flex-col items-center justify-center gap-2.5 text-slate-700 p-4">
-              <Loader2 size={26} className="animate-spin text-slate-900" />
-              <span className="text-xs sm:text-sm font-bold text-slate-800">Subiendo fotografía a Cloudinary...</span>
-              <span className="text-[11px] text-slate-500">Optimizando calidad y formato web</span>
+            <div className="flex flex-col items-center justify-center gap-2 text-slate-600 p-4">
+              <Loader2 size={22} className="animate-spin text-slate-800" />
+              <span className="text-xs font-semibold text-slate-800">Subiendo imagen...</span>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center gap-2 p-4 text-center">
-              <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center justify-center text-slate-700 group-hover:scale-110 transition-transform">
-                <Camera size={22} className="text-slate-800" />
+            <div className="flex flex-col items-center justify-center gap-1.5 p-3 text-center">
+              <div className="w-9 h-9 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center justify-center text-slate-600">
+                <Camera size={18} />
               </div>
-              <div className="flex flex-col items-center gap-0.5">
-                <span className="text-xs sm:text-sm font-bold text-slate-900">
-                  Subir foto del plato
-                </span>
-                <span className="text-[11px] text-slate-500 max-w-[280px]">
-                  Tocá para seleccionar de tu galería o cámara (PNG o JPG)
-                </span>
-              </div>
-              <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200/60 mt-0.5">
-                ✨ +40% de atracción visual para tus clientes
+              <span className="text-xs font-bold text-slate-800">
+                Subir foto del plato
+              </span>
+              <span className="text-[11px] text-slate-400">
+                Tocá para seleccionar de tu galería o cámara (opcional)
               </span>
             </div>
           )}
