@@ -49,6 +49,25 @@ const AgencyCopyTip = ({ message }: { message: string }) => (
   </div>
 );
 
+const getCategoryEmoji = (name: string): string => {
+  const n = (name || '').toLowerCase();
+  if (n.includes('hamburg') || n.includes('burger')) return '🍔';
+  if (n.includes('pizz')) return '🍕';
+  if (n.includes('empanad')) return '🥟';
+  if (n.includes('lomi') || n.includes('carne') || n.includes('parrill') || n.includes('asado') || n.includes('bife')) return '🥩';
+  if (n.includes('bebid') || n.includes('gaseosa') || n.includes('refresco') || n.includes('cervez') || n.includes('trago') || n.includes('vino') || n.includes('agua')) return '🥤';
+  if (n.includes('postr') || n.includes('helad') || n.includes('dulce') || n.includes('torta') || n.includes('flan')) return '🍰';
+  if (n.includes('ensalad') || n.includes('saludable') || n.includes('veggie') || n.includes('vegan')) return '🥗';
+  if (n.includes('caf') || n.includes('desayun') || n.includes('merien') || n.includes('medialun')) return '☕';
+  if (n.includes('sandw') || n.includes('tostad') || n.includes('panin')) return '🥪';
+  if (n.includes('pasta') || n.includes('tallar') || n.includes('ravi') || n.includes('ñoqui')) return '🍝';
+  if (n.includes('sushi') || n.includes('roll') || n.includes('poke')) return '🍣';
+  if (n.includes('taco') || n.includes('mexic') || n.includes('burrito') || n.includes('nacho') || n.includes('quesadill')) return '🌮';
+  if (n.includes('pollo') || n.includes('nugget') || n.includes('alita')) return '🍗';
+  if (n.includes('papa') || n.includes('frita') || n.includes('snack') || n.includes('aro')) return '🍟';
+  return '🍽️';
+};
+
 const initialData: MenuFormData = {
   // PASO 1
   mercadoLibreUser: '',
@@ -1695,13 +1714,13 @@ export default function Wizard() {
                           <button
                             type="button"
                             onClick={() => setSelectedCategoryTab('ALL')}
-                            className={`px-3 py-1.5 rounded-full text-xs font-bold shrink-0 transition-all cursor-pointer ${
+                            className={`px-3.5 py-2 rounded-full text-xs font-bold shrink-0 transition-all cursor-pointer ${
                               selectedCategoryTab === 'ALL'
                                 ? 'bg-slate-950 text-white shadow-xs'
                                 : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
                             }`}
                           >
-                            Todas ({data.categoriesList.length})
+                            🍽️ Todas ({data.categoriesList.length})
                           </button>
                           {data.categoriesList.map((cat) => {
                             const count = data.dishesList.filter(
@@ -1713,12 +1732,13 @@ export default function Wizard() {
                                 key={cat}
                                 type="button"
                                 onClick={() => setSelectedCategoryTab(cat)}
-                                className={`px-3 py-1.5 rounded-full text-xs font-bold shrink-0 transition-all flex items-center gap-1.5 cursor-pointer ${
+                                className={`px-3.5 py-2 rounded-full text-xs font-bold shrink-0 transition-all flex items-center gap-1.5 cursor-pointer ${
                                   isSelected
                                     ? 'bg-slate-950 text-white shadow-xs'
                                     : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
                                 }`}
                               >
+                                <span>{getCategoryEmoji(cat)}</span>
                                 <span>{cat}</span>
                                 <span
                                   className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
@@ -1743,17 +1763,17 @@ export default function Wizard() {
                         return (
                           <div
                             key={cat}
-                            className="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 shadow-xs flex flex-col gap-3 sm:gap-4 border border-slate-200/90"
+                            className="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 shadow-xs flex flex-col gap-3.5 sm:gap-4 border border-slate-200/90"
                           >
                             {/* CABECERA DE CATEGORÍA */}
-                            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                            <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
                               <div className="flex items-center gap-2 min-w-0">
-                                <span className="w-2.5 h-2.5 rounded-full bg-slate-950 shrink-0" />
-                                <h4 className="text-sm sm:text-base font-black text-slate-900 truncate">
+                                <span className="text-xl shrink-0">{getCategoryEmoji(cat)}</span>
+                                <h4 className="text-base sm:text-lg font-black text-slate-900 truncate">
                                   {cat}
                                 </h4>
                               </div>
-                              <span className="text-[11px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 shrink-0">
+                              <span className="text-[11px] sm:text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 shrink-0">
                                 {categoryDishes.length} {categoryDishes.length === 1 ? 'plato' : 'platos'}
                               </span>
                             </div>
@@ -1775,108 +1795,112 @@ export default function Wizard() {
                               </div>
                             ) : (
                               /* TARJETAS DE PLATOS ULTRA CÓMODAS PARA MOBILE */
-                              <div className="flex flex-col gap-3">
+                              <div className="flex flex-col gap-4">
                                 {categoryDishes.map((dish, dIdx) => (
                                   <div
                                     key={dish.id}
-                                    className="p-3 sm:p-4 rounded-2xl bg-slate-50/70 sm:bg-slate-50/60 border border-slate-200/90 flex flex-col gap-2.5 transition-all"
+                                    className="p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-slate-50/70 sm:bg-slate-50/50 border border-slate-200/90 shadow-2xs flex flex-col gap-3.5 transition-all"
                                   >
-                                    {/* TOP ROW: BADGE PLATO # + BOTÓN ELIMINAR */}
-                                    <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-slate-200/70">
-                                      <div className="flex items-center gap-1.5">
-                                        <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-800 text-[11px] font-bold shadow-2xs">
+                                    {/* TOP ROW: BADGE PLATO # + CATEGORÍA + BOTÓN ELIMINAR */}
+                                    <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-200/70">
+                                      <div className="flex items-center gap-2">
+                                        <span className="px-2.5 py-1 rounded-lg bg-slate-950 text-white text-[11px] font-bold shadow-2xs">
                                           Plato #{dIdx + 1}
                                         </span>
-                                        <span className="text-[11px] text-slate-400 font-medium truncate max-w-[130px] hidden xs:inline">
-                                          · {cat}
+                                        <span className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+                                          <span>{getCategoryEmoji(cat)}</span>
+                                          <span className="truncate max-w-[140px]">{cat}</span>
                                         </span>
                                       </div>
                                       <button
                                         type="button"
                                         onClick={() => removeDish(dish.id)}
-                                        className="text-xs text-rose-500 hover:text-rose-700 active:scale-95 flex items-center gap-1 cursor-pointer transition-colors py-0.5 px-1.5 rounded-lg hover:bg-rose-50"
+                                        className="text-xs text-rose-500 hover:text-rose-700 active:scale-95 flex items-center gap-1 cursor-pointer transition-colors py-1 px-2 rounded-lg hover:bg-rose-50"
                                         title="Eliminar plato"
                                       >
                                         <Trash2 size={13} />
-                                        <span className="text-[11px] font-semibold">Eliminar</span>
+                                        <span className="text-[11px] font-bold">Eliminar</span>
                                       </button>
                                     </div>
 
-                                    {/* FILA SUPERIOR: FOTO A LA IZQUIERDA + NOMBRE Y PRECIO A LA DERECHA */}
-                                    <div className="flex items-start gap-2.5 sm:gap-3.5">
-                                      {/* FOTO DEL PLATO */}
-                                      <div className="shrink-0 pt-0.5">
-                                        <DishImageUpload
-                                          value={dish.imageUrl}
-                                          onChange={(url) => updateDish(dish.id, 'imageUrl', url)}
-                                          clientFolder={getClientFolderName()}
-                                          dishName={dish.name}
+                                    {/* FOTO HERO DEL PLATO (ANCHO COMPLETO) */}
+                                    <div className="w-full">
+                                      <DishImageUpload
+                                        value={dish.imageUrl}
+                                        onChange={(url) => updateDish(dish.id, 'imageUrl', url)}
+                                        clientFolder={getClientFolderName()}
+                                        dishName={dish.name}
+                                      />
+                                    </div>
+
+                                    {/* CAMPOS PRINCIPALES: NOMBRE Y PRECIO */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                      {/* NOMBRE DEL PLATO */}
+                                      <div className="sm:col-span-2 flex flex-col gap-1.5">
+                                        <label className="text-xs font-bold text-slate-700">
+                                          Nombre del plato *
+                                        </label>
+                                        <input
+                                          type="text"
+                                          value={dish.name}
+                                          onChange={(e) => updateDish(dish.id, 'name', e.target.value)}
+                                          placeholder={
+                                            cat.toLowerCase().includes('bebid')
+                                              ? 'Ej: Gaseosa 500ml'
+                                              : cat.toLowerCase().includes('pizz')
+                                              ? 'Ej: Pizza Muzzarella Especial'
+                                              : cat.toLowerCase().includes('empanad')
+                                              ? 'Ej: Empanada de Carne'
+                                              : cat.toLowerCase().includes('postr')
+                                              ? 'Ej: Flan Casero con Dulce'
+                                              : cat.toLowerCase().includes('lomi')
+                                              ? 'Ej: Lomito Completo'
+                                              : 'Ej: Doble Cheeseburger'
+                                          }
+                                          className="w-full h-12 bg-white border border-slate-200 focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 rounded-xl px-3.5 text-base sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-2xs"
                                         />
                                       </div>
 
-                                      {/* NOMBRE Y PRECIO */}
-                                      <div className="flex-1 flex flex-col gap-2 min-w-0">
-                                        {/* NOMBRE DEL PLATO */}
-                                        <div className="flex flex-col gap-1">
-                                          <label className="text-[11px] font-bold text-slate-700 leading-none">
-                                            Nombre del plato *
-                                          </label>
+                                      {/* PRECIO */}
+                                      <div className="sm:col-span-1 flex flex-col gap-1.5">
+                                        <label className="text-xs font-bold text-slate-700">
+                                          Precio ($) *
+                                        </label>
+                                        <div className="relative flex items-center">
+                                          <span className="absolute left-3.5 text-sm font-bold text-slate-400 pointer-events-none">$</span>
                                           <input
                                             type="text"
-                                            value={dish.name}
-                                            onChange={(e) => updateDish(dish.id, 'name', e.target.value)}
-                                            placeholder={
-                                              cat.toLowerCase().includes('bebid')
-                                                ? 'Ej: Gaseosa 500ml'
-                                                : cat.toLowerCase().includes('pizz')
-                                                ? 'Ej: Pizza Muzzarella'
-                                                : cat.toLowerCase().includes('empanad')
-                                                ? 'Ej: Empanada de Carne'
-                                                : cat.toLowerCase().includes('postr')
-                                                ? 'Ej: Flan Casero'
-                                                : 'Ej: Doble Cheddar'
-                                            }
-                                            className="w-full h-10.5 bg-white border border-slate-200 focus:border-slate-900 focus:ring-2 focus:ring-slate-900/5 rounded-xl px-3 text-base sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-2xs"
+                                            value={dish.price.replace(/^\$\s*/, '')}
+                                            onChange={(e) => {
+                                              const val = e.target.value;
+                                              updateDish(dish.id, 'price', val ? `$${val.replace(/^\$\s*/, '')}` : '');
+                                            }}
+                                            placeholder="8.500"
+                                            className="w-full h-12 bg-white border border-slate-200 focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 rounded-xl pl-8 pr-3 text-base sm:text-sm font-black text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-2xs"
                                           />
-                                        </div>
-
-                                        {/* PRECIO */}
-                                        <div className="flex flex-col gap-1">
-                                          <label className="text-[11px] font-bold text-slate-700 leading-none">
-                                            Precio ($) *
-                                          </label>
-                                          <div className="relative flex items-center">
-                                            <span className="absolute left-3 text-xs font-bold text-slate-400 pointer-events-none">$</span>
-                                            <input
-                                              type="text"
-                                              value={dish.price.replace(/^\$\s*/, '')}
-                                              onChange={(e) => {
-                                                const val = e.target.value;
-                                                updateDish(dish.id, 'price', val ? `$${val.replace(/^\$\s*/, '')}` : '');
-                                              }}
-                                              placeholder="8.500"
-                                              className="w-full h-10.5 bg-white border border-slate-200 focus:border-slate-900 focus:ring-2 focus:ring-slate-900/5 rounded-xl pl-6 pr-3 text-base sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-2xs"
-                                            />
-                                          </div>
                                         </div>
                                       </div>
                                     </div>
 
-                                    {/* FILA INFERIOR: DESCRIPCIÓN A ANCHO COMPLETO */}
-                                    <div className="flex flex-col gap-1 pt-1 border-t border-slate-200/60">
-                                      <label className="text-[10px] font-medium text-slate-400 leading-none">
+                                    {/* DESCRIPCIÓN O INGREDIENTES */}
+                                    <div className="flex flex-col gap-1.5">
+                                      <label className="text-[11px] font-semibold text-slate-500">
                                         Descripción o ingredientes (opcional)
                                       </label>
-                                      <input
-                                        type="text"
+                                      <textarea
+                                        rows={2}
                                         value={dish.description || ''}
                                         onChange={(e) => updateDish(dish.id, 'description', e.target.value)}
                                         placeholder={
                                           cat.toLowerCase().includes('bebid')
-                                            ? 'Ej: Presentación 500ml bien fría'
-                                            : 'Ej: Medallón 120g, queso cheddar fundido y pan de papa'
+                                            ? 'Ej: Presentación 500ml servida bien fría'
+                                            : cat.toLowerCase().includes('pizz')
+                                            ? 'Ej: Salsa casera de tomates seleccionados, muzzarella y aceitunas negras'
+                                            : cat.toLowerCase().includes('empanad')
+                                            ? 'Ej: Relleno de carne cortada a cuchillo con cebolla de verdeo y huevo'
+                                            : 'Ej: Doble medallón 120g de carne, queso cheddar fundido y pan de papa'
                                         }
-                                        className="w-full h-9.5 bg-white border border-slate-200 focus:border-slate-900 rounded-xl px-3 text-base sm:text-xs font-medium text-slate-700 placeholder:text-slate-400 outline-none transition-colors shadow-2xs"
+                                        className="w-full rounded-xl bg-white border border-slate-200 focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 p-3 text-sm font-normal text-slate-800 placeholder:text-slate-400 outline-none transition-all resize-none shadow-2xs leading-relaxed"
                                       />
                                     </div>
                                   </div>
@@ -1888,9 +1912,9 @@ export default function Wizard() {
                             <button
                               type="button"
                               onClick={() => addDishToCategory(cat)}
-                              className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-98"
+                              className="w-full h-12 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm active:scale-98"
                             >
-                              <Plus size={14} />
+                              <Plus size={16} />
                               <span>Agregar otro plato a {cat}</span>
                             </button>
                           </div>
