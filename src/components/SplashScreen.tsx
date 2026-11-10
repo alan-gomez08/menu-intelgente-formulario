@@ -215,20 +215,31 @@ export default function SplashScreen() {
           </div>
         </div>
 
-        {/* Marca y subtítulo que acompañan el cierre del trazado */}
-        <motion.div
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: 0.75, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-5 flex flex-col items-center text-center"
-        >
-          <span className="text-base sm:text-lg font-black text-slate-950 tracking-tight leading-none">
-            Menú Digital Inteligente
-          </span>
-          <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-[0.24em] mt-2">
+        {/* Firma de estudio y título editorial con revelación desde línea de base */}
+        <div className="mt-6 flex flex-col items-center text-center">
+          <motion.span
+            initial={{ opacity: 0, letterSpacing: '0.42em', y: 4 }}
+            animate={{ opacity: 1, letterSpacing: '0.26em', y: 0 }}
+            transition={{ duration: 0.5, delay: 0.55, ease: [0.16, 1, 0.3, 1] }}
+            className="text-[10px] sm:text-[11px] font-bold uppercase text-[#a66c4c]"
+          >
             AG Digital Studio
-          </span>
-        </motion.div>
+          </motion.span>
+
+          <div className="overflow-hidden mt-2 pt-0.5">
+            <motion.h1
+              initial={{ y: '100%', opacity: 0 }}
+              animate={{ y: '0%', opacity: 1 }}
+              transition={{ duration: 0.48, delay: 0.72, ease: [0.16, 1, 0.3, 1] }}
+              className="text-xl sm:text-2xl font-black tracking-tight leading-tight text-slate-950"
+            >
+              Menú Digital{' '}
+              <span className="bg-gradient-to-r from-[#b47452] via-[#8c5239] to-slate-900 bg-clip-text text-transparent">
+                Inteligente
+              </span>
+            </motion.h1>
+          </div>
+        </div>
 
         {/* Línea de progreso minimalista sincronizada a 1.65s */}
         <motion.div
