@@ -96,17 +96,17 @@ export default function DishImageUpload({ value, onChange, clientFolder, dishNam
   return (
     <div className="shrink-0">
       {value ? (
-        <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border border-slate-200 bg-white group shadow-2xs">
+        <div className="relative w-[72px] h-[72px] sm:w-20 sm:h-20 rounded-xl overflow-hidden border border-slate-200 bg-white group shadow-2xs">
           <img src={value} alt={dishName || 'Plato'} className="w-full h-full object-cover" />
 
           {/* BOTÓN MÓVIL VISIBLE SIEMPRE (SIN DEPENDER DE HOVER) */}
           <button
             type="button"
             onClick={() => onChange('')}
-            className="sm:hidden absolute top-1 right-1 w-5 h-5 rounded-full bg-slate-950/85 text-white flex items-center justify-center shadow-md active:scale-90 z-10"
+            className="sm:hidden absolute top-1 right-1 w-5 h-5 rounded-full bg-slate-950/85 text-white flex items-center justify-center shadow-md active:scale-90 z-10 cursor-pointer"
             title="Quitar foto"
           >
-            <X size={12} />
+            <X size={11} />
           </button>
 
           {/* OVERLAY DESKTOP CON HOVER */}
@@ -127,10 +127,10 @@ export default function DishImageUpload({ value, onChange, clientFolder, dishNam
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
           onDrop={handleDrop}
-          className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl border border-dashed flex flex-col items-center justify-center gap-1 transition-all select-none ${
+          className={`relative w-[72px] h-[72px] sm:w-20 sm:h-20 rounded-xl border border-dashed flex flex-col items-center justify-center gap-1 transition-all select-none ${
             isDragging
               ? 'border-slate-900 bg-slate-100'
-              : 'border-slate-300 bg-white hover:bg-slate-50 hover:border-slate-400'
+              : 'border-slate-300 bg-slate-50/80 hover:bg-slate-100 hover:border-slate-400'
           } ${isUploading ? 'cursor-not-allowed opacity-75' : 'cursor-pointer'}`}
           title="Subir foto para este plato"
         >
@@ -138,7 +138,9 @@ export default function DishImageUpload({ value, onChange, clientFolder, dishNam
             <Loader2 size={18} className="animate-spin text-slate-800" />
           ) : (
             <>
-              <Camera size={18} className="text-slate-400 group-hover:text-slate-700" />
+              <div className="w-7 h-7 rounded-lg bg-white border border-slate-200 shadow-2xs flex items-center justify-center text-slate-500">
+                <Camera size={14} />
+              </div>
               <span className="text-[10px] font-bold text-slate-500">Foto</span>
             </>
           )}
