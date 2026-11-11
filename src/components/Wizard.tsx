@@ -316,7 +316,6 @@ export default function Wizard() {
   const [direction, setDirection] = useState<1 | -1>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copiedField, setCopiedField] = useState<'alias' | 'amount' | null>(null);
-  const [qrImageAvailable, setQrImageAvailable] = useState(true);
   const [submittedProject, setSubmittedProject] = useState<{
     id: string;
     restaurantName: string;
@@ -786,7 +785,6 @@ export default function Wizard() {
       }
 
       setCopiedField(null);
-      setQrImageAvailable(true);
       setSubmittedProject({
         id: documentId,
         restaurantName: data.restaurantName || data.mercadoLibreUser || 'Local Gastronómico',
@@ -1018,8 +1016,7 @@ export default function Wizard() {
                   </h2>
                   <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
                     Para activar tu <strong className="text-slate-900 font-bold">Mantenimiento VIP</strong> y asegurar tu
-                    descuento, completá el pago de la suscripción. Podés hacerlo escaneando este{' '}
-                    <strong className="text-slate-900 font-bold">QR de Mercado Pago</strong> o transfiriendo al Alias:{' '}
+                    descuento, completá el pago de la suscripción. Podés hacerlo transfiriendo al Alias:{' '}
                     <strong className="text-slate-950 font-black">{PAYMENT_ALIAS}</strong>. El monto al cambio de hoy es:{' '}
                     <strong className="text-slate-950 font-black">
                       ${submittedProject.finalARS.toLocaleString('es-AR')}
@@ -1028,7 +1025,7 @@ export default function Wizard() {
                   </p>
                 </div>
 
-                {/* TARJETA DE PAGO: QR MERCADO PAGO + ALIAS + DETALLE AL CAMBIO OFICIAL */}
+                {/* TARJETA DE PAGO: ALIAS Y DETALLE AL CAMBIO OFICIAL */}
                 <div className="w-full rounded-2xl bg-white border-2 border-slate-900/90 shadow-md p-4 sm:p-6 flex flex-col gap-4 text-left">
                   <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
                     <div className="flex items-center gap-2.5">
@@ -1037,7 +1034,7 @@ export default function Wizard() {
                         <span className="text-xs sm:text-sm font-black text-slate-900 leading-tight">
                           Pago de Suscripción · {submittedProject.restaurantName}
                         </span>
-                        <span className="text-[11px] text-slate-500 font-medium">
+                        <span className="text-[11px] text-slate-600 font-medium">
                           Cotización Oficial: 1 USD = ${submittedProject.dolarRate.toLocaleString('es-AR')} ARS
                         </span>
                       </div>
@@ -1047,85 +1044,69 @@ export default function Wizard() {
                     </span>
                   </div>
 
-                  <div className={`grid grid-cols-1 ${qrImageAvailable ? 'sm:grid-cols-[190px_1fr]' : ''} gap-4 sm:gap-5 items-center`}>
-                    {qrImageAvailable && (
-                      <div className="flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-50 border border-slate-200/80 mx-auto sm:mx-0 w-48 sm:w-full">
-                        <img
-                          src="/assets/qr-mercadopago.png"
-                          alt="QR de Mercado Pago - ALAN.UX"
-                          onError={() => setQrImageAvailable(false)}
-                          className="w-36 h-36 sm:w-40 sm:h-40 object-contain rounded-xl bg-white p-1.5 border border-slate-200/60"
-                        />
-                        <span className="text-[11px] font-bold text-slate-600 mt-2 text-center">
-                          Escaneá con Mercado Pago
+                  <div className="flex flex-col gap-3">
+                    {/* ALIAS TRANSFERENCIA */}
+                    <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/90 flex items-center justify-between gap-3">
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                          Alias Mercado Pago
+                        </span>
+                        <span className="text-base sm:text-lg font-black text-slate-950 tracking-tight truncate">
+                          {PAYMENT_ALIAS}
                         </span>
                       </div>
-                    )}
+                      <button
+                        type="button"
+                        onClick={() => handleCopyValue(PAYMENT_ALIAS, 'alias')}
+                        className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 border transition-all shrink-0 cursor-pointer ${
+                          copiedField === 'alias'
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-200 shadow-2xs'
+                        }`}
+                      >
+                        {copiedField === 'alias' ? <Check size={14} /> : <Copy size={14} />}
+                        <span>{copiedField === 'alias' ? 'Copiado' : 'Copiar Alias'}</span>
+                      </button>
+                    </div>
 
-                    <div className="flex flex-col gap-3">
-                      {/* ALIAS TRANSFERENCIA */}
-                      <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/90 flex items-center justify-between gap-3">
-                        <div className="flex flex-col min-w-0">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                            Alias Mercado Pago
+                    {/* RESUMEN Y MONTO FINAL */}
+                    <div className="p-3.5 rounded-xl bg-slate-950 text-white flex flex-col gap-2">
+                      {submittedProject.discountARS > 0 && (
+                        <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-white/10 text-xs">
+                          <div className="flex items-center gap-2">
+                            <span className="text-slate-400">Valor plan ({submittedProject.usdAmount} USD):</span>
+                            <span className="text-slate-400 line-through decoration-rose-400/80 font-semibold">
+                              ${submittedProject.grossARS.toLocaleString('es-AR')} ARS
+                            </span>
+                          </div>
+                          <span className="text-[11px] font-bold text-emerald-300 bg-emerald-500/15 px-2 py-0.5 rounded-md border border-emerald-400/20">
+                            Descuento -${submittedProject.discountARS.toLocaleString('es-AR')} ARS
                           </span>
-                          <span className="text-base sm:text-lg font-black text-slate-950 tracking-tight truncate">
-                            {PAYMENT_ALIAS}
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300/90">
+                            Monto al cambio de hoy
+                          </span>
+                          <span className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                            ${submittedProject.finalARS.toLocaleString('es-AR')}{' '}
+                            <span className="text-xs font-bold text-slate-300">ARS</span>
                           </span>
                         </div>
                         <button
                           type="button"
-                          onClick={() => handleCopyValue(PAYMENT_ALIAS, 'alias')}
+                          onClick={() => handleCopyValue(submittedProject.finalARS.toString(), 'amount')}
                           className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 border transition-all shrink-0 cursor-pointer ${
-                            copiedField === 'alias'
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                              : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-200 shadow-2xs'
+                            copiedField === 'amount'
+                              ? 'bg-emerald-500 text-white border-emerald-400'
+                              : 'bg-white/10 hover:bg-white/20 text-white border-white/15'
                           }`}
                         >
-                          {copiedField === 'alias' ? <Check size={14} /> : <Copy size={14} />}
-                          <span>{copiedField === 'alias' ? 'Copiado' : 'Copiar Alias'}</span>
+                          {copiedField === 'amount' ? <Check size={14} /> : <Copy size={14} />}
+                          <span>{copiedField === 'amount' ? 'Copiado' : 'Copiar monto'}</span>
                         </button>
-                      </div>
-
-                      {/* RESUMEN Y MONTO FINAL */}
-                      <div className="p-3.5 rounded-xl bg-slate-950 text-white flex flex-col gap-2">
-                        {submittedProject.discountARS > 0 && (
-                          <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-white/10 text-xs">
-                            <div className="flex items-center gap-2">
-                              <span className="text-slate-400">Valor plan ({submittedProject.usdAmount} USD):</span>
-                              <span className="text-slate-400 line-through decoration-rose-400/80 font-semibold">
-                                ${submittedProject.grossARS.toLocaleString('es-AR')} ARS
-                              </span>
-                            </div>
-                            <span className="text-[11px] font-bold text-emerald-300 bg-emerald-500/15 px-2 py-0.5 rounded-md border border-emerald-400/20">
-                              Descuento -${submittedProject.discountARS.toLocaleString('es-AR')} ARS
-                            </span>
-                          </div>
-                        )}
-
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="flex flex-col">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300/90">
-                              Monto al cambio de hoy
-                            </span>
-                            <span className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                              ${submittedProject.finalARS.toLocaleString('es-AR')}{' '}
-                              <span className="text-xs font-bold text-slate-300">ARS</span>
-                            </span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleCopyValue(submittedProject.finalARS.toString(), 'amount')}
-                            className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 border transition-all shrink-0 cursor-pointer ${
-                              copiedField === 'amount'
-                                ? 'bg-emerald-500 text-white border-emerald-400'
-                                : 'bg-white/10 hover:bg-white/20 text-white border-white/15'
-                            }`}
-                          >
-                            {copiedField === 'amount' ? <Check size={14} /> : <Copy size={14} />}
-                            <span>{copiedField === 'amount' ? 'Copiado' : 'Copiar monto'}</span>
-                          </button>
-                        </div>
                       </div>
                     </div>
                   </div>
