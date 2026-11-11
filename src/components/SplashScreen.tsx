@@ -215,27 +215,18 @@ export default function SplashScreen() {
           </div>
         </div>
 
-        {/* Firma de estudio y título editorial con revelación desde línea de base */}
+        {/* Marca del estudio con revelación editorial sincronizada al cierre del trazo */}
         <div className="mt-6 flex flex-col items-center text-center">
-          <motion.span
-            initial={{ opacity: 0, letterSpacing: '0.42em', y: 4 }}
-            animate={{ opacity: 1, letterSpacing: '0.26em', y: 0 }}
-            transition={{ duration: 0.5, delay: 0.55, ease: [0.16, 1, 0.3, 1] }}
-            className="text-[10px] sm:text-[11px] font-bold uppercase text-[#a66c4c]"
-          >
-            AG Digital Studio
-          </motion.span>
-
-          <div className="overflow-hidden mt-2 pt-0.5">
+          <div className="overflow-hidden pt-0.5">
             <motion.h1
-              initial={{ y: '100%', opacity: 0 }}
-              animate={{ y: '0%', opacity: 1 }}
-              transition={{ duration: 0.48, delay: 0.72, ease: [0.16, 1, 0.3, 1] }}
-              className="text-xl sm:text-2xl font-black tracking-tight leading-tight text-slate-950"
+              initial={{ y: '100%', opacity: 0, letterSpacing: '0.08em' }}
+              animate={{ y: '0%', opacity: 1, letterSpacing: '-0.02em' }}
+              transition={{ duration: 0.55, delay: 0.56, ease: [0.16, 1, 0.3, 1] }}
+              className="text-xl sm:text-2xl font-extrabold leading-tight text-slate-950"
             >
-              Menú Digital{' '}
-              <span className="bg-gradient-to-r from-[#b47452] via-[#8c5239] to-slate-900 bg-clip-text text-transparent">
-                Inteligente
+              AG{' '}
+              <span className="font-bold bg-gradient-to-r from-[#b47452] via-[#8c5239] to-slate-900 bg-clip-text text-transparent">
+                Digital Studio
               </span>
             </motion.h1>
           </div>
@@ -246,7 +237,7 @@ export default function SplashScreen() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.25, delay: 0.2 }}
-          className="mt-6 w-28 sm:w-36 h-[2px] rounded-full bg-slate-200/80 overflow-hidden"
+          className="mt-5 w-28 sm:w-36 h-[2px] rounded-full bg-slate-200/80 overflow-hidden"
         >
           <motion.div
             initial={{ scaleX: 0 }}
