@@ -580,69 +580,82 @@ export default function Wizard() {
     }));
   };
 
-  // VALIDACIÓN POR PASO
-  const isNextDisabled = (): boolean => {
+  // VALIDACIÓN POR PASO Y MOTIVO ESPECÍFICO CUANDO FALTA UN DATO
+  const getDisabledReason = (): string | null => {
     const stepId = currentStep.id;
 
     if (stepId === 'WELCOME') {
-      return false;
+      return null;
     }
     if (stepId === 'PURCHASE_VALIDATION') {
-      return (data.mercadoLibreUser ?? '').trim() === '';
+      return (data.mercadoLibreUser ?? '').trim() === '' ? 'Ingresá tu usuario' : null;
     }
     if (stepId === 'RESTAURANT_IDENTITY') {
-      return (data.restaurantName ?? '').trim() === '';
+      return (data.restaurantName ?? '').trim() === '' ? 'Ingresá nombre del local' : null;
     }
     if (stepId === 'LOGO_UPLOAD') {
-      return !data.noLogo && (data.logoUrl ?? '').trim() === '';
+      return !data.noLogo && (data.logoUrl ?? '').trim() === '' ? 'Subí tu logo o marcá opción' : null;
     }
     if (stepId === 'VISUAL_STYLE') {
-      return (data.primaryColor ?? '').trim() === '' || !data.themeTone;
+      return (data.primaryColor ?? '').trim() === '' || !data.themeTone ? 'Completá este paso' : null;
     }
     if (stepId === 'MANAGEMENT_PLAN') {
-      if (!data.managementPlan) return true;
-      if (data.managementPlan === 'vip' && !data.billingCycle) return true;
-      return false;
+      if (!data.managementPlan) return 'Elegí un plan';
+      if (data.managementPlan === 'vip' && !data.billingCycle) return 'Elegí un ciclo';
+      return null;
     }
     if (stepId === 'CATALOG_SETUP') {
       if (catalogSubStep === 0) {
-        return data.categoriesList.length === 0;
+        return data.categoriesList.length === 0 ? 'Agregá 1 categoría' : null;
       }
       if (catalogSubStep === 1) {
-        if (!currentCategory) return true;
+        if (!currentCategory) return 'Agregá 1 categoría';
         const currentCatValidDishes = data.dishesList.filter(
           (d) => d.categoryName === currentCategory && d.name.trim() !== '' && d.price.trim() !== ''
         );
-        return currentCatValidDishes.length === 0;
+        return currentCatValidDishes.length === 0 ? 'Cargá 1 plato con precio' : null;
       }
       if (catalogSubStep === 2) {
-        return data.featuredDishIds.length === 0;
+        return data.featuredDishIds.length === 0 ? 'Elegí 1 plato destacado' : null;
       }
-      return false;
+      return null;
     }
     if (stepId === 'LOGISTICS_WHATSAPP') {
       const cleanPhone = (data.whatsappNumber ?? '').replace(/\D/g, '');
-      const hasPhone = cleanPhone.length >= 8;
-      const hasAnyMethod = data.deliveryMethods.delivery || data.deliveryMethods.takeaway;
-      const hasValidDeliveryZones =
-        !data.deliveryMethods.delivery ||
-        (data.deliveryZones.length > 0 &&
-          data.deliveryZones.every((z) => z.name.trim() !== '' && z.cost.trim() !== ''));
-      return !hasPhone || !hasAnyMethod || !hasValidDeliveryZones;
+      if (cleanPhone.length < 8) {
+        return 'Falta WhatsApp (mín. 8 dígitos)';
+      }
+      if (!data.deliveryMethods.delivery && !data.deliveryMethods.takeaway) {
+        return 'Elegí un método de entrega';
+      }
+      if (data.deliveryMethods.delivery) {
+        if (data.deliveryZones.length === 0) {
+          return 'Agregá 1 zona de envío';
+        }
+        const hasIncompleteZone = data.deliveryZones.some(
+          (z) => z.name.trim() === '' || z.cost.trim() === ''
+        );
+        if (hasIncompleteZone) {
+          return 'Completá zona y costo';
+        }
+      }
+      return null;
     }
     if (stepId === 'PAYMENT_METHODS') {
-      return (
-        (data.paymentCbuAlias ?? '').trim() === '' ||
+      return (data.paymentCbuAlias ?? '').trim() === '' ||
         (data.paymentAccountHolder ?? '').trim() === '' ||
         (data.paymentBank ?? '').trim() === ''
-      );
+        ? 'Completá datos de cobro'
+        : null;
     }
     if (stepId === 'CLOSING_TERMS') {
-      return !data.acceptedTerms;
+      return !data.acceptedTerms ? 'Aceptá los términos' : null;
     }
 
-    return false;
+    return null;
   };
+
+  const isWhatsappValid = (data.whatsappNumber ?? '').replace(/\D/g, '').length >= 8;
 
   // ENVÍO FINAL A FIREBASE FIRESTORE
   const handleSubmit = async () => {
@@ -2003,23 +2016,6 @@ export default function Wizard() {
                           </div>
                         )}
                       </div>
-
-                      {/* BOTÓN CONTINUAR A 7B */}
-                      <div className="pt-2 flex justify-end">
-                        <button
-                          type="button"
-                          onClick={() => setCatalogSubStep(1)}
-                          disabled={data.categoriesList.length === 0}
-                          className={`w-full sm:w-auto h-12 px-6 rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-98 ${
-                            data.categoriesList.length > 0
-                              ? 'bg-slate-950 hover:bg-slate-900 text-white cursor-pointer shadow-md'
-                              : 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                          }`}
-                        >
-                          <span>Continuar a Platos</span>
-                          <ArrowRight size={15} />
-                        </button>
-                      </div>
                     </motion.div>
                   )}
 
@@ -2212,67 +2208,6 @@ export default function Wizard() {
                           </div>
                         );
                       })()}
-
-                      {/* BOTONES INFERIORES DE NAVEGACIÓN ENTRE CATEGORÍAS */}
-                      <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (safeCategoryIndex > 0) {
-                              setCurrentCategoryIndex(safeCategoryIndex - 1);
-                              window.scrollTo({ top: 0, behavior: 'smooth' });
-                            } else {
-                              setCatalogSubStep(0);
-                              window.scrollTo({ top: 0, behavior: 'smooth' });
-                            }
-                          }}
-                          className="w-full sm:w-auto h-11 sm:h-12 px-5 rounded-xl border border-slate-200 hover:bg-slate-50 font-semibold text-xs sm:text-sm text-slate-700 flex items-center justify-center gap-2 transition-colors cursor-pointer"
-                        >
-                          <ArrowLeft size={15} />
-                          <span>
-                            {safeCategoryIndex > 0
-                              ? `Anterior (${data.categoriesList[safeCategoryIndex - 1]})`
-                              : 'Volver a Categorías'}
-                          </span>
-                        </button>
-
-                        {(() => {
-                          const currentCatValidDishes = data.dishesList.filter(
-                            (d) => d.categoryName === currentCategory && d.name.trim() !== '' && d.price.trim() !== ''
-                          );
-                          const isCatComplete = currentCatValidDishes.length > 0;
-                          const isLastCategory = safeCategoryIndex >= data.categoriesList.length - 1;
-
-                          return (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (!isCatComplete) return;
-                                if (!isLastCategory) {
-                                  setCurrentCategoryIndex(safeCategoryIndex + 1);
-                                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                                } else {
-                                  setCatalogSubStep(2);
-                                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                                }
-                              }}
-                              disabled={!isCatComplete}
-                              className={`w-full sm:w-auto h-11 sm:h-12 px-6 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
-                                isCatComplete
-                                  ? 'bg-slate-950 hover:bg-slate-900 text-white cursor-pointer shadow-sm'
-                                  : 'bg-slate-100 text-slate-400 border border-slate-200/80 cursor-not-allowed'
-                              }`}
-                            >
-                              <span>
-                                {isLastCategory
-                                  ? 'Continuar a Destacados'
-                                  : `Siguiente: ${data.categoriesList[safeCategoryIndex + 1]}`}
-                              </span>
-                              <ArrowRight size={15} />
-                            </button>
-                          );
-                        })()}
-                      </div>
                     </motion.div>
                   )}
 
@@ -2333,8 +2268,8 @@ export default function Wizard() {
                                       className="w-12 h-12 rounded-xl object-cover shrink-0 border border-slate-200"
                                     />
                                   ) : (
-                                    <div className="w-12 h-12 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center shrink-0 text-xs font-bold">
-                                      🍴
+                                    <div className="w-12 h-12 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center shrink-0">
+                                      <ShoppingBag size={18} />
                                     </div>
                                   )}
                                   <div className="flex flex-col min-w-0">
@@ -2369,34 +2304,6 @@ export default function Wizard() {
                           ¡Listo! Ya seleccionaste los 6 platos estrella para la portada. Si querés cambiar alguno, desmarcá uno primero.
                         </div>
                       )}
-
-                      <div className="pt-2 flex items-center justify-between gap-3">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setCatalogSubStep(1);
-                            setCurrentCategoryIndex(Math.max(0, data.categoriesList.length - 1));
-                          }}
-                          className="h-12 px-5 rounded-2xl border border-slate-200 hover:bg-slate-50 font-semibold text-xs text-slate-700 flex items-center gap-2 transition-all cursor-pointer"
-                        >
-                          <ArrowLeft size={15} />
-                          <span>Volver a Platos</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={nextStep}
-                          disabled={data.featuredDishIds.length === 0}
-                          className={`h-12 px-6 rounded-2xl font-bold text-xs sm:text-sm flex items-center gap-2 transition-all ${
-                            data.featuredDishIds.length > 0
-                              ? 'bg-slate-950 hover:bg-slate-900 text-white cursor-pointer shadow-md'
-                              : 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                          }`}
-                        >
-                          <span>Continuar a Logística</span>
-                          <ArrowRight size={15} />
-                        </button>
-                      </div>
                     </motion.div>
                   )}
                 </div>
@@ -2422,20 +2329,33 @@ export default function Wizard() {
                   <div className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-sm flex flex-col gap-4 sm:gap-6">
                     {/* INPUT 1: WHATSAPP REQUERIDO */}
                     <div className="flex flex-col gap-2">
-                      <label className="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wide">
-                        Número de WhatsApp Receptor (Requerido) *
-                      </label>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <label className="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wide">
+                          Número de WhatsApp Receptor (Requerido) *
+                        </label>
+                        {isWhatsappValid ? (
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">
+                            Número válido
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full">
+                            Falta número (mín. 8 dígitos)
+                          </span>
+                        )}
+                      </div>
                       <div className="relative flex items-center">
                         <div className="absolute left-4 flex items-center gap-1.5 text-slate-500 font-bold text-sm pointer-events-none">
                           <WhatsAppIcon size={16} className="text-[#25D366]" />
                         </div>
                         <input
+                          id="logistics-whatsapp-input"
                           type="tel"
                           value={data.whatsappNumber}
                           onChange={(e) => handleInputChange('whatsappNumber', e.target.value)}
                           placeholder="Ej: +54 9 11..."
-                          className="w-full h-13 sm:h-14 bg-slate-50/70 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 rounded-2xl pl-11 pr-5 text-base font-bold text-slate-900 outline-none transition-all shadow-2xs"
-                          autoFocus
+                          className={`w-full h-13 sm:h-14 bg-slate-50/70 border hover:border-slate-300 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 rounded-2xl pl-11 pr-5 text-base font-bold text-slate-900 outline-none transition-all shadow-2xs ${
+                            isWhatsappValid ? 'border-slate-200' : 'border-amber-300'
+                          }`}
                         />
                       </div>
                       <span className="text-xs text-slate-500 ml-1">
@@ -3062,7 +2982,8 @@ export default function Wizard() {
 
             {/* BOTÓN CONTINUAR */}
             {currentStep.id !== 'CLOSING_TERMS' && (() => {
-              const disabled = isNextDisabled();
+              const disabledReason = getDisabledReason();
+              const disabled = disabledReason !== null;
               const nextButtonText =
                 currentStep.id === 'CATALOG_SETUP'
                   ? catalogSubStep === 0
@@ -3084,10 +3005,17 @@ export default function Wizard() {
                         initial={{ opacity: 0.7 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        disabled
-                        className="w-full sm:min-w-[190px] h-12 sm:h-12.5 px-4 sm:px-6 rounded-xl font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 bg-slate-100 text-slate-400 border border-slate-200/80 cursor-not-allowed select-none transition-all"
+                        aria-disabled="true"
+                        onClick={() => {
+                          if (currentStep.id === 'LOGISTICS_WHATSAPP' && !isWhatsappValid) {
+                            const input = document.getElementById('logistics-whatsapp-input');
+                            input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            input?.focus();
+                          }
+                        }}
+                        className="w-full sm:min-w-[190px] h-12 sm:h-12.5 px-4 sm:px-6 rounded-xl font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 bg-slate-100 text-slate-500 border border-slate-200/80 cursor-not-allowed select-none transition-all"
                       >
-                        <span className="truncate">Completá este paso</span>
+                        <span className="truncate">{disabledReason}</span>
                         <ArrowRight size={15} className="shrink-0 opacity-40" />
                       </motion.button>
                     ) : (
