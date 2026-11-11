@@ -624,7 +624,11 @@ export default function Wizard() {
       const cleanPhone = (data.whatsappNumber ?? '').replace(/\D/g, '');
       const hasPhone = cleanPhone.length >= 8;
       const hasAnyMethod = data.deliveryMethods.delivery || data.deliveryMethods.takeaway;
-      return !hasPhone || !hasAnyMethod;
+      const hasValidDeliveryZones =
+        !data.deliveryMethods.delivery ||
+        (data.deliveryZones.length > 0 &&
+          data.deliveryZones.every((z) => z.name.trim() !== '' && z.cost.trim() !== ''));
+      return !hasPhone || !hasAnyMethod || !hasValidDeliveryZones;
     }
     if (stepId === 'PAYMENT_METHODS') {
       return (
@@ -719,7 +723,9 @@ export default function Wizard() {
             delivery: data.deliveryMethods.delivery,
             retiroLocal: data.deliveryMethods.takeaway
           },
-          zonasEnvio: data.deliveryZones.filter((z) => z.name.trim() !== '')
+          zonasEnvio: data.deliveryMethods.delivery
+            ? data.deliveryZones.filter((z) => z.name.trim() !== '' && z.cost.trim() !== '')
+            : []
         },
 
         // 6. MEDIOS DE COBRO
@@ -2514,7 +2520,7 @@ export default function Wizard() {
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
                           <div>
                             <span className="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wide block">
-                              Zonas de Envío
+                              Zonas de Envío (Requerido) *
                             </span>
                             <span className="text-xs text-slate-500">
                               Agregá las zonas o barrios y su costo de envío correspondiente.
@@ -2523,50 +2529,111 @@ export default function Wizard() {
                           <button
                             type="button"
                             onClick={addDeliveryZone}
-                            className="w-full sm:w-auto px-4 py-2 sm:py-1.5 rounded-xl bg-slate-950 hover:bg-slate-900 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs active:scale-95"
+                            className="w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl bg-slate-950 hover:bg-slate-900 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs active:scale-95"
                           >
                             <Plus size={14} />
                             <span>Agregar Zona de Envío</span>
                           </button>
                         </div>
 
+                        {/* NOTA EXPLICATIVA PARA EVITAR MALOS ENTENDIDOS */}
+                        <div className="flex items-start gap-2.5 p-3 sm:p-3.5 rounded-xl bg-amber-50/85 border border-amber-200/90 text-xs text-amber-950 leading-relaxed">
+                          <Info size={16} className="text-amber-600 shrink-0 mt-0.5" />
+                          <p>
+                            <strong className="font-bold">Nota importante:</strong> Como activaste{' '}
+                            <strong className="font-bold">Delivery</strong>, debés cargar al menos{' '}
+                            <strong className="font-bold">1 zona con nombre y costo</strong> para continuar. Si agregás
+                            una fila y la dejás vacía o incompleta, el botón <strong className="font-bold">Continuar</strong>{' '}
+                            no se habilitará hasta que la completes o la elimines con el ícono del tacho.
+                          </p>
+                        </div>
+
                         <div className="flex flex-col gap-2.5">
                           {data.deliveryZones.length === 0 ? (
-                            <div className="p-4 rounded-2xl border border-dashed border-slate-300 text-center text-xs text-slate-500 bg-white/60">
-                              No tenés zonas de envío configuradas todavía. Hacé clic arriba en <strong className="text-slate-800">Agregar Zona de Envío</strong> para definir barrios y tarifas.
+                            <div className="p-4 rounded-2xl border border-dashed border-amber-300 text-center text-xs text-slate-600 bg-amber-50/30">
+                              Todavía no agregaste zonas de envío. Tocá en{' '}
+                              <strong className="text-slate-900">Agregar Zona de Envío</strong> arriba para cargar tu primera zona.
                             </div>
                           ) : (
-                            data.deliveryZones.map((zone, idx) => (
-                              <div
-                                key={zone.id || idx}
-                                className="flex flex-col sm:flex-row sm:items-center gap-2 p-2.5 rounded-2xl bg-slate-50 border border-slate-200"
-                              >
-                                <input
-                                  type="text"
-                                  value={zone.name}
-                                  onChange={(e) => updateDeliveryZone(idx, 'name', e.target.value)}
-                                  placeholder="Ej: Palermo, San Isidro, Ramos Mejía"
-                                  className="w-full flex-1 h-11 bg-white border border-slate-200 rounded-xl px-3 text-base sm:text-sm font-semibold text-slate-900 focus:border-slate-900 outline-none"
-                                />
-                                <div className="flex items-center gap-2 w-full sm:w-auto">
-                                  <input
-                                    type="text"
-                                    value={zone.cost}
-                                    onChange={(e) => updateDeliveryZone(idx, 'cost', e.target.value)}
-                                    placeholder="$2.500"
-                                    className="flex-1 sm:w-32 h-11 bg-white border border-slate-200 rounded-xl px-3 text-base sm:text-sm font-bold text-slate-900 focus:border-slate-900 outline-none"
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => removeDeliveryZone(idx)}
-                                    className="w-11 h-11 rounded-xl bg-white hover:bg-red-50 text-slate-400 hover:text-red-600 border border-slate-200 flex items-center justify-center transition-all cursor-pointer shrink-0"
-                                    title="Eliminar fila de zona"
+                            <>
+                              {data.deliveryZones.map((zone, idx) => {
+                                const isNameEmpty = zone.name.trim() === '';
+                                const isCostEmpty = zone.cost.trim() === '';
+                                const isZoneIncomplete = isNameEmpty || isCostEmpty;
+
+                                return (
+                                  <div
+                                    key={zone.id || idx}
+                                    className={`flex flex-col gap-2 p-3 rounded-2xl border transition-all ${
+                                      isZoneIncomplete
+                                        ? 'bg-amber-50/30 border-amber-300/90'
+                                        : 'bg-slate-50 border-slate-200'
+                                    }`}
                                   >
-                                    <Trash2 size={16} />
-                                  </button>
-                                </div>
-                              </div>
-                            ))
+                                    <div className="flex items-center justify-between px-0.5">
+                                      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                                        Zona #{idx + 1}
+                                      </span>
+                                      {isZoneIncomplete ? (
+                                        <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">
+                                          Completá zona y costo
+                                        </span>
+                                      ) : (
+                                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                                          Lista
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    <div className="flex flex-col sm:flex-row sm:items-end gap-2">
+                                      <div className="flex flex-col gap-1 flex-1">
+                                        <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 ml-1">
+                                          Zona o barrio *
+                                        </label>
+                                        <input
+                                          type="text"
+                                          value={zone.name}
+                                          onChange={(e) => updateDeliveryZone(idx, 'name', e.target.value)}
+                                          placeholder="Ej: Palermo, San Isidro, Centro"
+                                          className={`w-full h-11 bg-white border rounded-xl px-3 text-base sm:text-sm font-semibold text-slate-900 outline-none transition-all ${
+                                            isNameEmpty
+                                              ? 'border-amber-300 focus:border-slate-900'
+                                              : 'border-slate-200 focus:border-slate-900'
+                                          }`}
+                                        />
+                                      </div>
+
+                                      <div className="flex items-end gap-2 w-full sm:w-auto">
+                                        <div className="flex flex-col gap-1 flex-1 sm:w-36">
+                                          <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 ml-1">
+                                            Costo de envío *
+                                          </label>
+                                          <input
+                                            type="text"
+                                            value={zone.cost}
+                                            onChange={(e) => updateDeliveryZone(idx, 'cost', e.target.value)}
+                                            placeholder="Ej: $2.500 o Gratis"
+                                            className={`w-full h-11 bg-white border rounded-xl px-3 text-base sm:text-sm font-bold text-slate-900 outline-none transition-all ${
+                                              isCostEmpty
+                                                ? 'border-amber-300 focus:border-slate-900'
+                                                : 'border-slate-200 focus:border-slate-900'
+                                            }`}
+                                          />
+                                        </div>
+                                        <button
+                                          type="button"
+                                          onClick={() => removeDeliveryZone(idx)}
+                                          className="w-11 h-11 rounded-xl bg-white hover:bg-red-50 text-slate-400 hover:text-red-600 border border-slate-200 flex items-center justify-center transition-all cursor-pointer shrink-0"
+                                          title="Eliminar fila de zona"
+                                        >
+                                          <Trash2 size={16} />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </>
                           )}
                         </div>
                       </div>
