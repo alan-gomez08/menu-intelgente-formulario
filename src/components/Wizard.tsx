@@ -2678,14 +2678,14 @@ export default function Wizard() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     {/* CARD 1: IDENTIDAD */}
                     <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex flex-col justify-between">
-                      <div className="flex items-center justify-between pb-2 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase">
+                      <div className="flex items-center justify-between pb-2 border-b border-slate-200/70 text-[11px] font-bold text-slate-600 uppercase tracking-wide">
                         <span>01 · Identidad Visual</span>
-                        <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
                       </div>
-                      <div className="flex flex-col gap-1.5 text-xs text-slate-600 pt-2">
+                      <div className="flex flex-col gap-1.5 text-xs text-slate-700 pt-2">
                         <div>
                           <strong className="text-slate-900 text-sm block">{data.restaurantName}</strong>
-                          <span className="text-slate-400 text-[11px]">ML: {data.mercadoLibreUser}</span>
+                          <span className="text-slate-600 text-[11px] font-medium">ML: {data.mercadoLibreUser}</span>
                         </div>
                         <div className="flex items-center gap-2 pt-1">
                           <span
@@ -2701,29 +2701,29 @@ export default function Wizard() {
 
                     {/* CARD 2: PLAN DE GESTIÓN */}
                     <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex flex-col justify-between">
-                      <div className="flex items-center justify-between pb-2 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase">
+                      <div className="flex items-center justify-between pb-2 border-b border-slate-200/70 text-[11px] font-bold text-slate-600 uppercase tracking-wide">
                         <span>02 · Plan Elegido</span>
-                        <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
                       </div>
-                      <div className="flex flex-col gap-1 text-xs text-slate-600 pt-2">
+                      <div className="flex flex-col gap-1 text-xs text-slate-700 pt-2">
                         <strong className="text-slate-900 text-sm">
                           {data.managementPlan === 'vip' ? 'Mantenimiento VIP Llave en Mano' : 'Plan Autogestionable ($0)'}
                         </strong>
                         {data.managementPlan === 'vip' ? (
                           <>
-                            <div className="flex flex-wrap items-center gap-1.5 font-semibold text-amber-700">
+                            <div className="flex flex-wrap items-center gap-1.5 font-semibold text-amber-800">
                               <span>
                                 Ciclo {data.billingCycle.toUpperCase()} ({selectedVipPricing.usd} USD)
                               </span>
                               {selectedVipPricing.discountARS > 0 && (
-                                <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-200">
+                                <span className="text-[10px] bg-emerald-50 text-emerald-800 px-1.5 py-0.5 rounded border border-emerald-200">
                                   -$39.990 ARS
                                 </span>
                               )}
                             </div>
                             <div className="flex flex-wrap items-baseline gap-1.5 pt-0.5">
                               {selectedVipPricing.discountARS > 0 && (
-                                <span className="text-slate-400 line-through text-[11px] font-semibold">
+                                <span className="text-slate-500 line-through text-[11px] font-semibold">
                                   ${selectedVipPricing.grossFormatted} ARS
                                 </span>
                               )}
@@ -2740,15 +2740,15 @@ export default function Wizard() {
 
                     {/* CARD 3: MENÚ Y CATÁLOGO */}
                     <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex flex-col justify-between">
-                      <div className="flex items-center justify-between pb-2 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase">
+                      <div className="flex items-center justify-between pb-2 border-b border-slate-200/70 text-[11px] font-bold text-slate-600 uppercase tracking-wide">
                         <span>03 · Menú & Productos</span>
-                        <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
                       </div>
-                      <div className="flex flex-col gap-1 text-xs text-slate-600 pt-2">
+                      <div className="flex flex-col gap-1 text-xs text-slate-700 pt-2">
                         <strong className="text-slate-900 truncate">
                           {data.dishesList.filter((d) => d.name.trim() !== '').length} platos cargados
                         </strong>
-                        <span className="text-slate-500">
+                        <span className="text-slate-600">
                           {data.categoriesList.length} categorías definidas ({data.featuredDishIds.length} platos estrella)
                         </span>
                         <span className="text-emerald-700 font-semibold text-[11px]">
@@ -2759,16 +2759,16 @@ export default function Wizard() {
 
                     {/* CARD 4: LOGÍSTICA & PAGOS */}
                     <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex flex-col justify-between">
-                      <div className="flex items-center justify-between pb-2 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase">
+                      <div className="flex items-center justify-between pb-2 border-b border-slate-200/70 text-[11px] font-bold text-slate-600 uppercase tracking-wide">
                         <span>04 · Pedidos & Pagos</span>
-                        <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
                       </div>
-                      <div className="flex flex-col gap-1 text-xs text-slate-600 pt-2">
+                      <div className="flex flex-col gap-1 text-xs text-slate-700 pt-2">
                         <strong className="text-slate-900">{data.whatsappNumber}</strong>
-                        <span className="text-slate-500">
+                        <span className="text-slate-600">
                           Alias: {data.paymentCbuAlias} ({data.paymentBank})
                         </span>
-                        <span className="text-slate-500 text-[11px]">
+                        <span className="text-slate-600 text-[11px]">
                           Efectivo: {data.acceptsCash ? 'Acepta en entrega' : 'Solo transferencias'}
                         </span>
                       </div>
@@ -2783,7 +2783,7 @@ export default function Wizard() {
                         <h4 className="text-sm sm:text-base font-bold text-slate-900 leading-snug">
                           Condiciones del Servicio y Puesta Online del Menú
                         </h4>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-slate-600">
                           Bases operativas, alcance técnico y garantía de desarrollo gastronómico.
                         </p>
                       </div>
@@ -2797,7 +2797,7 @@ export default function Wizard() {
                           <span className="font-bold text-slate-900 text-xs sm:text-[13px] leading-tight">Cómputo del Plazo de Entrega</span>
                         </div>
                         <p className="text-xs sm:text-[13px] text-slate-600 leading-relaxed md:flex-1">
-                          El plazo de entrega comenzará a computarse una vez enviado este formulario con los datos obligatorios y la lista de precios válida. Nuestro equipo realizará la diagramación y digitalización inicial para que tu Menú quede listo para operar.
+                          El plazo de entrega <strong className="text-slate-900 font-semibold">de 24 a 48 hs hábiles</strong> comenzará a computarse una vez enviado este formulario con los datos obligatorios y la lista de precios válida. Nuestro equipo realizará la diagramación y digitalización inicial para que tu Menú quede listo para operar.
                         </p>
                       </div>
 
