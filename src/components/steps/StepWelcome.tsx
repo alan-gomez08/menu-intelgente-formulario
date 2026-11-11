@@ -5,8 +5,8 @@ import {
   ArrowRight
 } from 'lucide-react';
 
-const DEFAULT_CORPORATE_DEMO_URL =
-  import.meta.env.VITE_DEMO_URL || 'https://landing-corporativa-kohl.vercel.app/';
+const DEFAULT_DEMO_URL =
+  import.meta.env.VITE_DEMO_URL || 'https://menu-inteligente.alanlautaro-gomez.workers.dev/';
 
 interface StepWelcomeProps {
   onStart: () => void;
@@ -15,7 +15,7 @@ interface StepWelcomeProps {
 
 export const StepWelcome: React.FC<StepWelcomeProps> = ({ 
   onStart, 
-  demoUrl = DEFAULT_CORPORATE_DEMO_URL 
+  demoUrl = DEFAULT_DEMO_URL 
 }) => {
   return (
     <div className="relative flex flex-col items-center justify-center min-h-[75vh] w-full max-w-2xl mx-auto py-8 sm:py-16 px-4 text-center">
