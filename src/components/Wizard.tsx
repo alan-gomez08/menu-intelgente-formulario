@@ -6,6 +6,7 @@ import {
   Sparkles,
   Check,
   CheckCircle2,
+  Copy,
   X,
   XCircle,
   ShieldCheck,
@@ -22,11 +23,19 @@ import {
   Info
 } from 'lucide-react';
 
-import type { MenuFormData, DeliveryZone, DishItem, StepDefinition } from '../types/wizard';
+import type {
+  BillingCycle,
+  DeliveryZone,
+  DishItem,
+  ManagementPlan,
+  MenuFormData,
+  StepDefinition
+} from '../types/wizard';
 import ImageUpload from './ImageUpload';
 import DishImageUpload from './DishImageUpload';
 import StepWelcome from './steps/StepWelcome';
 import FloatingWhatsAppSupport, { WhatsAppIcon } from './FloatingWhatsAppSupport';
+import MercadoPagoIcon from './icons/MercadoPagoIcon';
 import { parseColorToCss } from '../utils/colorParser';
 
 import { db, FIRESTORE_COLLECTION } from '../firebase';
@@ -38,6 +47,79 @@ const STORAGE_SUBSTEP_KEY = 'onboardingGastronomico_catalog_substep';
 const STORAGE_CATEGORY_INDEX_KEY = 'onboardingGastronomico_category_index';
 
 const CLOUDINARY_BASE_FOLDER = import.meta.env.VITE_CLOUDINARY_BASE_FOLDER || 'Menu inteligente';
+const AGENCY_WHATSAPP = import.meta.env.VITE_AGENCY_WHATSAPP || '5491178188323';
+const PAYMENT_ALIAS = 'ALAN.UX';
+const ANNUAL_DISCOUNT_ARS = 39990;
+
+const VIP_CYCLES: Record<BillingCycle, { label: string; usd: number; suffix: string }> = {
+  mensual: { label: 'Mensual', usd: 10, suffix: '/ mes' },
+  trimestral: { label: 'Trimestral', usd: 25, suffix: 'total trimestral' },
+  semestral: { label: 'Semestral', usd: 45, suffix: 'total semestral' },
+  anual: { label: 'Anual', usd: 100, suffix: '/ año' }
+};
+
+function calculateVipPricing(cycle: BillingCycle, dolarRate: number) {
+  const info = VIP_CYCLES[cycle] ?? VIP_CYCLES.anual;
+  const grossARS = info.usd * dolarRate;
+  const discountARS = cycle === 'anual' ? ANNUAL_DISCOUNT_ARS : 0;
+  const finalARS = Math.max(0, grossARS - discountARS);
+  return {
+    ...info,
+    dolarRate,
+    grossARS,
+    discountARS,
+    finalARS,
+    grossFormatted: grossARS.toLocaleString('es-AR'),
+    discountFormatted: discountARS.toLocaleString('es-AR'),
+    finalFormatted: finalARS.toLocaleString('es-AR')
+  };
+}
+
+type VipPricingSummary = ReturnType<typeof calculateVipPricing>;
+
+// Resumen visual unificado para mostrar el cálculo en ARS y el descuento anual tachado
+const VipTotalSummaryBanner = ({
+  pricing,
+  dolarFecha,
+  eyebrowPrefix,
+  totalLabel
+}: {
+  pricing: VipPricingSummary;
+  dolarFecha?: string;
+  eyebrowPrefix: string;
+  totalLabel: string;
+}) => (
+  <div className="rounded-2xl sm:rounded-3xl bg-slate-950 text-white p-4 sm:p-5 border border-slate-800 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div className="flex flex-col gap-0.5">
+      <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-amber-300">
+        {eyebrowPrefix} · Mantenimiento VIP {pricing.label} ({pricing.usd} USD)
+      </span>
+      <span className="text-xs text-slate-300">
+        Calculado al tipo de cambio oficial de hoy (1 USD = ${pricing.dolarRate.toLocaleString('es-AR')} ARS
+        {dolarFecha ? ` · ${dolarFecha}` : ''})
+      </span>
+    </div>
+
+    <div className="flex flex-col sm:items-end gap-1 pt-2 sm:pt-0 border-t sm:border-t-0 border-white/10">
+      {pricing.discountARS > 0 && (
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          <span className="text-slate-400 line-through decoration-rose-400/80 font-semibold">
+            ${pricing.grossFormatted} ARS
+          </span>
+          <span className="text-[11px] font-bold text-emerald-300 bg-emerald-500/15 px-2 py-0.5 rounded-md border border-emerald-400/20">
+            Descuento -${pricing.discountFormatted} ARS
+          </span>
+        </div>
+      )}
+      <div className="flex items-baseline gap-2">
+        <span className="text-xs font-semibold text-slate-400">{totalLabel}</span>
+        <span className="text-xl sm:text-2xl font-black text-white tracking-tight">
+          ${pricing.finalFormatted} ARS
+        </span>
+      </div>
+    </div>
+  </div>
+);
 
 // Componente de apoyo visible con personalidad de agencia
 const AgencyCopyTip = ({ message }: { message: string }) => (
@@ -233,12 +315,36 @@ export default function Wizard() {
 
   const [direction, setDirection] = useState<1 | -1>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [copiedField, setCopiedField] = useState<'alias' | 'amount' | null>(null);
+  const [qrImageAvailable, setQrImageAvailable] = useState(true);
   const [submittedProject, setSubmittedProject] = useState<{
     id: string;
     restaurantName: string;
+    managementPlanType: ManagementPlan;
     managementPlan: string;
-    billingCycle?: string;
+    billingCycle?: BillingCycle;
+    usdAmount: number;
+    dolarRate: number;
+    grossARS: number;
+    discountARS: number;
+    finalARS: number;
+    whatsappNumber: string;
+    dishesCount: number;
+    categoriesCount: number;
+    featuredCount: number;
   } | null>(null);
+
+  const handleCopyValue = async (text: string, field: 'alias' | 'amount') => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(field);
+      setTimeout(() => {
+        setCopiedField((prev) => (prev === field ? null : prev));
+      }, 2200);
+    } catch {
+      // Fallback silencioso si el navegador bloquea clipboard API
+    }
+  };
 
   // Sincronización continua de localStorage
   useEffect(() => {
@@ -550,6 +656,13 @@ export default function Wizard() {
           ? `Plan Llave en Mano / VIP (${data.billingCycle.toUpperCase()})`
           : 'Plan Autogestionable ($0)';
 
+      const vipPricing =
+        data.managementPlan === 'vip'
+          ? calculateVipPricing(data.billingCycle, dolarOficial)
+          : null;
+
+      const validDishesCount = data.dishesList.filter((d) => d.name.trim() !== '').length;
+
       const cleanData = {
         // METADATOS
         idProyecto: documentId,
@@ -580,9 +693,13 @@ export default function Wizard() {
         planGestion: {
           tipo: data.managementPlan === 'vip' ? 'LLAVE_EN_MANO_VIP' : 'AUTOGESTIONABLE',
           nombrePlan: planNameFormatted,
-          costoMensualBase: data.managementPlan === 'vip' ? 'Variable según ciclo' : '$0',
+          costoMensualBase: vipPricing ? `${vipPricing.usd} USD` : '$0',
           cicloFacturacion: data.managementPlan === 'vip' ? data.billingCycle : 'no_aplica',
           promoReintegro40k: data.managementPlan === 'vip' && data.billingCycle === 'anual',
+          descuentoAplicadoARS: vipPricing ? vipPricing.discountARS : 0,
+          montoBrutoARS: vipPricing ? vipPricing.grossARS : 0,
+          montoFinalARS: vipPricing ? vipPricing.finalARS : 0,
+          montoFinalFormateado: vipPricing ? `$${vipPricing.finalFormatted} ARS` : '$0 ARS',
           cotizacionDolarOficial: `$${dolarOficial} ARS`,
           monedaFacturacion: 'Abonable en ARS al cambio oficial del día'
         },
@@ -592,7 +709,7 @@ export default function Wizard() {
           categorias: data.categoriesList,
           platos: data.dishesList.filter((d) => d.name.trim() !== '' && d.price.trim() !== ''),
           platosEstrellaIds: data.featuredDishIds,
-          totalPlatosCargados: data.dishesList.filter((d) => d.name.trim() !== '').length
+          totalPlatosCargados: validDishesCount
         },
 
         // 5. LOGÍSTICA & ENVÍOS
@@ -644,15 +761,28 @@ export default function Wizard() {
         localStorage.removeItem(STORAGE_DATA_KEY);
         localStorage.removeItem(STORAGE_STEP_KEY);
         localStorage.removeItem(STORAGE_SUBSTEP_KEY);
+        localStorage.removeItem(STORAGE_CATEGORY_INDEX_KEY);
       } catch (e) {
         console.error('Error limpiando localStorage:', e);
       }
 
+      setCopiedField(null);
+      setQrImageAvailable(true);
       setSubmittedProject({
         id: documentId,
         restaurantName: data.restaurantName || data.mercadoLibreUser || 'Local Gastronómico',
+        managementPlanType: data.managementPlan,
         managementPlan: planNameFormatted,
-        billingCycle: data.managementPlan === 'vip' ? data.billingCycle : undefined
+        billingCycle: data.managementPlan === 'vip' ? data.billingCycle : undefined,
+        usdAmount: vipPricing ? vipPricing.usd : 0,
+        dolarRate: dolarOficial,
+        grossARS: vipPricing ? vipPricing.grossARS : 0,
+        discountARS: vipPricing ? vipPricing.discountARS : 0,
+        finalARS: vipPricing ? vipPricing.finalARS : 0,
+        whatsappNumber: data.whatsappNumber,
+        dishesCount: validDishesCount,
+        categoriesCount: data.categoriesList.length,
+        featuredCount: data.featuredDishIds.length
       });
 
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -690,11 +820,16 @@ export default function Wizard() {
 
   const primaryColorCss = parseColorToCss(data.primaryColor, '#DC2626');
 
-  // Cálculos de precios en ARS al cambio oficial actual
-  const precioMensualARS = (10 * dolarOficial).toLocaleString('es-AR');
-  const precioTrimestralARS = (25 * dolarOficial).toLocaleString('es-AR');
-  const precioSemestralARS = (45 * dolarOficial).toLocaleString('es-AR');
-  const precioAnualARS = (100 * dolarOficial).toLocaleString('es-AR');
+  // Cálculos de precios en ARS al cambio oficial actual (con descuento de $39.990 en Anual 100 USD)
+  const mensualPricing = calculateVipPricing('mensual', dolarOficial);
+  const trimestralPricing = calculateVipPricing('trimestral', dolarOficial);
+  const semestralPricing = calculateVipPricing('semestral', dolarOficial);
+  const anualPricing = calculateVipPricing('anual', dolarOficial);
+  const selectedVipPricing = calculateVipPricing(data.billingCycle || 'anual', dolarOficial);
+
+  const precioMensualARS = mensualPricing.finalFormatted;
+  const precioTrimestralARS = trimestralPricing.finalFormatted;
+  const precioSemestralARS = semestralPricing.finalFormatted;
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans flex flex-col items-center pt-20 sm:pt-24 px-3 sm:px-6 relative selection:bg-slate-950 selection:text-white">
@@ -755,83 +890,245 @@ export default function Wizard() {
             initial={{ opacity: 0, scale: 0.96, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full glass-panel rounded-3xl p-6 sm:p-10 shadow-xl border border-slate-200/90 flex flex-col items-center text-center gap-6"
+            className="w-full glass-panel rounded-3xl p-5 sm:p-10 shadow-xl border border-slate-200/90 flex flex-col items-center text-center gap-5 sm:gap-6"
           >
-            {/* ÍCONO DE ÉXITO */}
-            <div className="relative flex items-center justify-center">
-              <div className="w-20 h-20 rounded-full bg-slate-950 text-white flex items-center justify-center shadow-lg border border-slate-800">
-                <CheckCircle2 size={40} className="text-white" />
-              </div>
-            </div>
+            {submittedProject.managementPlanType === 'autogestionable' ? (
+              <>
+                {/* PANTALLA DE ÉXITO A: PLAN AUTOGESTIONABLE ($0) */}
+                <div className="relative flex items-center justify-center">
+                  <div className="w-20 h-20 rounded-full bg-slate-950 text-white flex items-center justify-center shadow-lg border border-slate-800">
+                    <CheckCircle2 size={40} className="text-white" />
+                  </div>
+                </div>
 
-            <div className="flex flex-col gap-2 max-w-lg">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                Orden #{submittedProject.id.toUpperCase()} · Ficha Recibida
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-tight">
-                ¡Menú Digital Registrado con Éxito!
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                Los datos y catálogo de <strong className="text-slate-900 font-bold">{submittedProject.restaurantName}</strong> fueron sincronizados correctamente en la base de datos de <strong className="text-slate-900 font-bold">AG Digital Studio</strong>.
-              </p>
-            </div>
-
-            {/* ESTADO DE ALMACENAMIENTO */}
-            <div className="w-full rounded-2xl bg-slate-50/90 border border-slate-200/80 p-4 sm:p-5 flex flex-col gap-3 text-left text-xs">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-200/60 font-semibold text-slate-700">
-                <span>Estado de Configuración & Base de Datos</span>
-                <span className="text-emerald-700 font-bold text-[11px] bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                  Sincronizado
-                </span>
-              </div>
-              <div className="flex flex-col gap-2 text-slate-600">
-                <div className="flex items-baseline gap-2">
-                  <span className="w-36 shrink-0 font-medium text-slate-500">Base de Datos:</span>
-                  <span className="font-semibold text-slate-900 truncate">Firebase Firestore ({FIRESTORE_COLLECTION})</span>
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="w-36 shrink-0 font-medium text-slate-500">Plan de Gestión:</span>
-                  <span className="font-semibold text-slate-900 truncate">{submittedProject.managementPlan}</span>
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="w-36 shrink-0 font-medium text-slate-500">WhatsApp Receptor:</span>
-                  <span className="font-semibold text-slate-900 truncate">{data.whatsappNumber}</span>
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="w-36 shrink-0 font-medium text-slate-500">Platos Configurados:</span>
-                  <span className="font-semibold text-slate-900 truncate">
-                    {data.dishesList.filter((d) => d.name.trim() !== '').length} platos en {data.categoriesList.length} categorías ({data.featuredDishIds.length} destacados)
+                <div className="flex flex-col gap-2 max-w-lg">
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                    Orden #{submittedProject.id.toUpperCase()} · Plan Autogestionable ($0)
                   </span>
+                  <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-tight">
+                    Listo, ya nos ponemos a trabajar
+                  </h2>
+                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                    Los datos y el catálogo de{' '}
+                    <strong className="text-slate-900 font-bold">{submittedProject.restaurantName}</strong> fueron
+                    sincronizados correctamente en la base de datos de{' '}
+                    <strong className="text-slate-900 font-bold">AG Digital Studio</strong>.
+                  </p>
                 </div>
-              </div>
-            </div>
 
-            {/* BOTONES DE ACCIÓN */}
-            <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-              <a
-                href={`https://wa.me/5491178188323?text=${encodeURIComponent(
-                  `¡Hola AG Digital Studio! Acabo de enviar el onboarding para el Menú Digital de "${submittedProject.restaurantName}" (Orden #${submittedProject.id.toUpperCase()}).`
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full sm:w-auto h-13 px-8 rounded-2xl bg-slate-950 hover:bg-slate-900 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-lg hover:shadow-xl transition-all cursor-pointer border border-slate-800"
-              >
-                <WhatsAppIcon size={17} className="text-white" />
-                <span>Avisar al equipo por WhatsApp</span>
-              </a>
-              <button
-                type="button"
-                onClick={() => {
-                  setSubmittedProject(null);
-                  setCurrentStepIndex(0);
-                  setCatalogSubStep(0);
-                  setData(initialData);
-                }}
-                className="w-full sm:w-auto h-13 px-6 rounded-2xl bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 border border-slate-200 transition-all cursor-pointer"
-              >
-                <span>Cargar otro formulario</span>
-              </button>
-            </div>
+                {/* ESTADO DE ALMACENAMIENTO */}
+                <div className="w-full rounded-2xl bg-slate-50/90 border border-slate-200/80 p-4 sm:p-5 flex flex-col gap-3 text-left text-xs">
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-200/60 font-semibold text-slate-700">
+                    <span>Estado de Configuración & Base de Datos</span>
+                    <span className="text-emerald-700 font-bold text-[11px] bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                      Sincronizado
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-2 text-slate-600">
+                    <div className="flex items-baseline gap-2">
+                      <span className="w-36 shrink-0 font-medium text-slate-500">Base de Datos:</span>
+                      <span className="font-semibold text-slate-900 truncate">
+                        Firebase Firestore ({FIRESTORE_COLLECTION})
+                      </span>
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                      <span className="w-36 shrink-0 font-medium text-slate-500">Plan de Gestión:</span>
+                      <span className="font-semibold text-slate-900 truncate">{submittedProject.managementPlan}</span>
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                      <span className="w-36 shrink-0 font-medium text-slate-500">Total Suscripción:</span>
+                      <span className="font-bold text-emerald-700">$0 ARS</span>
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                      <span className="w-36 shrink-0 font-medium text-slate-500">WhatsApp Receptor:</span>
+                      <span className="font-semibold text-slate-900 truncate">{submittedProject.whatsappNumber}</span>
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                      <span className="w-36 shrink-0 font-medium text-slate-500">Platos Configurados:</span>
+                      <span className="font-semibold text-slate-900 truncate">
+                        {submittedProject.dishesCount} platos en {submittedProject.categoriesCount} categorías (
+                        {submittedProject.featuredCount} destacados)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* BOTONES DE ACCIÓN PANTALLA A */}
+                <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-3 pt-1">
+                  <a
+                    href={`https://wa.me/${AGENCY_WHATSAPP}?text=${encodeURIComponent(
+                      `¡Hola AG Digital Studio! Acabo de enviar el onboarding para el Menú Digital de "${submittedProject.restaurantName}" con Plan Autogestionable ($0) (Orden #${submittedProject.id.toUpperCase()}).`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full sm:w-auto h-13 px-8 rounded-2xl bg-slate-950 hover:bg-slate-900 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-lg hover:shadow-xl transition-all cursor-pointer border border-slate-800"
+                  >
+                    <WhatsAppIcon size={17} className="text-[#25D366]" />
+                    <span>Avisar al equipo por WhatsApp</span>
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSubmittedProject(null);
+                      setCurrentStepIndex(0);
+                      setCatalogSubStep(0);
+                      setCurrentCategoryIndex(0);
+                      setData(initialData);
+                    }}
+                    className="w-full sm:w-auto h-13 px-6 rounded-2xl bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 border border-slate-200 transition-all cursor-pointer"
+                  >
+                    <span>Cargar otro formulario</span>
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* PANTALLA DE ÉXITO B: PLAN VIP (CUALQUIER CICLO) */}
+                <div className="relative flex items-center justify-center">
+                  <div className="w-20 h-20 rounded-full bg-slate-950 text-white flex items-center justify-center shadow-lg border-2 border-amber-400/70">
+                    <CheckCircle2 size={40} className="text-amber-400" />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2.5 max-w-xl">
+                  <span className="text-xs font-bold text-amber-700 uppercase tracking-widest">
+                    Orden #{submittedProject.id.toUpperCase()} · {submittedProject.managementPlan}
+                  </span>
+                  <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-tight">
+                    ¡Excelente elección!
+                  </h2>
+                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                    Para activar tu <strong className="text-slate-900 font-bold">Mantenimiento VIP</strong> y asegurar tu
+                    descuento, completá el pago de la suscripción. Podés hacerlo escaneando este{' '}
+                    <strong className="text-slate-900 font-bold">QR de Mercado Pago</strong> o transfiriendo al Alias:{' '}
+                    <strong className="text-slate-950 font-black">{PAYMENT_ALIAS}</strong>. El monto al cambio de hoy es:{' '}
+                    <strong className="text-slate-950 font-black">
+                      ${submittedProject.finalARS.toLocaleString('es-AR')}
+                    </strong>
+                    .
+                  </p>
+                </div>
+
+                {/* TARJETA DE PAGO: QR MERCADO PAGO + ALIAS + DETALLE AL CAMBIO OFICIAL */}
+                <div className="w-full rounded-2xl bg-white border-2 border-slate-900/90 shadow-md p-4 sm:p-6 flex flex-col gap-4 text-left">
+                  <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                    <div className="flex items-center gap-2.5">
+                      <MercadoPagoIcon size={26} className="shrink-0" />
+                      <div className="flex flex-col">
+                        <span className="text-xs sm:text-sm font-black text-slate-900 leading-tight">
+                          Pago de Suscripción · {submittedProject.restaurantName}
+                        </span>
+                        <span className="text-[11px] text-slate-500 font-medium">
+                          Cotización Oficial: 1 USD = ${submittedProject.dolarRate.toLocaleString('es-AR')} ARS
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      Ficha Guardada
+                    </span>
+                  </div>
+
+                  <div className={`grid grid-cols-1 ${qrImageAvailable ? 'sm:grid-cols-[190px_1fr]' : ''} gap-4 sm:gap-5 items-center`}>
+                    {qrImageAvailable && (
+                      <div className="flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-50 border border-slate-200/80 mx-auto sm:mx-0 w-48 sm:w-full">
+                        <img
+                          src="/assets/qr-mercadopago.png"
+                          alt="QR de Mercado Pago - ALAN.UX"
+                          onError={() => setQrImageAvailable(false)}
+                          className="w-36 h-36 sm:w-40 sm:h-40 object-contain rounded-xl bg-white p-1.5 border border-slate-200/60"
+                        />
+                        <span className="text-[11px] font-bold text-slate-600 mt-2 text-center">
+                          Escaneá con Mercado Pago
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="flex flex-col gap-3">
+                      {/* ALIAS TRANSFERENCIA */}
+                      <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/90 flex items-center justify-between gap-3">
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                            Alias Mercado Pago
+                          </span>
+                          <span className="text-base sm:text-lg font-black text-slate-950 tracking-tight truncate">
+                            {PAYMENT_ALIAS}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyValue(PAYMENT_ALIAS, 'alias')}
+                          className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 border transition-all shrink-0 cursor-pointer ${
+                            copiedField === 'alias'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-200 shadow-2xs'
+                          }`}
+                        >
+                          {copiedField === 'alias' ? <Check size={14} /> : <Copy size={14} />}
+                          <span>{copiedField === 'alias' ? 'Copiado' : 'Copiar Alias'}</span>
+                        </button>
+                      </div>
+
+                      {/* RESUMEN Y MONTO FINAL */}
+                      <div className="p-3.5 rounded-xl bg-slate-950 text-white flex flex-col gap-2">
+                        {submittedProject.discountARS > 0 && (
+                          <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-white/10 text-xs">
+                            <div className="flex items-center gap-2">
+                              <span className="text-slate-400">Valor plan ({submittedProject.usdAmount} USD):</span>
+                              <span className="text-slate-400 line-through decoration-rose-400/80 font-semibold">
+                                ${submittedProject.grossARS.toLocaleString('es-AR')} ARS
+                              </span>
+                            </div>
+                            <span className="text-[11px] font-bold text-emerald-300 bg-emerald-500/15 px-2 py-0.5 rounded-md border border-emerald-400/20">
+                              Descuento -${submittedProject.discountARS.toLocaleString('es-AR')} ARS
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex flex-col">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300/90">
+                              Monto al cambio de hoy
+                            </span>
+                            <span className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                              ${submittedProject.finalARS.toLocaleString('es-AR')}{' '}
+                              <span className="text-xs font-bold text-slate-300">ARS</span>
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleCopyValue(submittedProject.finalARS.toString(), 'amount')}
+                            className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 border transition-all shrink-0 cursor-pointer ${
+                              copiedField === 'amount'
+                                ? 'bg-emerald-500 text-white border-emerald-400'
+                                : 'bg-white/10 hover:bg-white/20 text-white border-white/15'
+                            }`}
+                          >
+                            {copiedField === 'amount' ? <Check size={14} /> : <Copy size={14} />}
+                            <span>{copiedField === 'amount' ? 'Copiado' : 'Copiar monto'}</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* BOTÓN FINAL ÚNICO WHATSAPP COMPROBANTE */}
+                <div className="w-full flex flex-col items-center justify-center gap-2.5 pt-1">
+                  <a
+                    href={`https://wa.me/${AGENCY_WHATSAPP}?text=${encodeURIComponent(
+                      `¡Hola AG Digital Studio! Ya realicé la transferencia para activar el Mantenimiento VIP (${submittedProject.billingCycle?.toUpperCase()} · ${submittedProject.usdAmount} USD) de "${submittedProject.restaurantName}" (Orden #${submittedProject.id.toUpperCase()}).\n\n• Monto al cambio de hoy ($${submittedProject.dolarRate.toLocaleString('es-AR')}): $${submittedProject.finalARS.toLocaleString('es-AR')} ARS${submittedProject.discountARS > 0 ? ` (descuento de $${submittedProject.discountARS.toLocaleString('es-AR')} ARS aplicado)` : ''}\n• Alias: ${PAYMENT_ALIAS}\n\nTe adjunto el comprobante por acá.`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="relative overflow-hidden w-full sm:w-auto min-h-14 px-7 sm:px-9 py-3.5 rounded-2xl bg-slate-950 hover:bg-slate-900 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-lg hover:shadow-xl transition-all cursor-pointer border border-slate-800 text-center"
+                  >
+                    <span className="absolute inset-0 -translate-x-full animate-[shimmer_2.5s_infinite] bg-gradient-to-r from-transparent via-white/15 to-transparent pointer-events-none" />
+                    <WhatsAppIcon size={18} className="text-[#25D366] shrink-0" />
+                    <span>Ya transferí, enviar comprobante a WhatsApp</span>
+                  </a>
+                </div>
+              </>
+            )}
           </motion.div>
         </main>
       ) : (
@@ -1457,7 +1754,7 @@ export default function Wizard() {
                             </label>
                           </div>
 
-                          {/* LAYOUT FULL WIDTH: CARD ANUAL (100 USD) */}
+                          {/* LAYOUT FULL WIDTH: CARD ANUAL (100 USD CON DESCUENTO EN VIVO DE $39.990 ARS) */}
                           <label
                             onClick={() => handleInputChange('billingCycle', 'anual')}
                             className={`p-4 sm:p-5 rounded-2xl sm:rounded-3xl border-2 transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 select-none ${
@@ -1468,22 +1765,33 @@ export default function Wizard() {
                           >
                             <div className="flex items-start gap-3 sm:gap-3.5">
                               <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-md mt-0.5">
-                                <Flame size={22} className="animate-pulse" />
+                                <Flame size={22} />
                               </div>
                               <div className="flex flex-col">
-                                <div className="flex items-center gap-2">
+                                <div className="flex flex-wrap items-center gap-2">
                                   <span className="font-black text-slate-950 text-sm sm:text-lg">
                                     ANUAL: 100 USD
                                   </span>
                                   <span className="text-[10px] sm:text-xs text-amber-950 font-bold bg-amber-200/80 px-2 py-0.5 rounded-md">
                                     Más Elegido
                                   </span>
+                                  <span className="text-[10px] sm:text-xs text-emerald-800 font-bold bg-emerald-100 px-2 py-0.5 rounded-md border border-emerald-200/80">
+                                    -$39.990 ARS bonificado
+                                  </span>
                                 </div>
-                                <span className="text-xs text-slate-600 font-bold mt-0.5">
-                                  ~ ${precioAnualARS} ARS / año
-                                </span>
+
+                                <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5 mt-1">
+                                  <span className="text-xs sm:text-sm text-slate-400 line-through decoration-rose-500/75 decoration-[1.5px] font-semibold">
+                                    ${anualPricing.grossFormatted} ARS
+                                  </span>
+                                  <span className="text-base sm:text-lg font-black text-slate-950 tracking-tight">
+                                    ${anualPricing.finalFormatted} ARS{' '}
+                                    <span className="text-[11px] font-semibold text-slate-600">final / año</span>
+                                  </span>
+                                </div>
+
                                 <p className="text-[11px] sm:text-xs text-amber-900/90 font-semibold mt-1">
-                                  🔥 PROMO: Te reintegramos el 100% del costo de desarrollo ($40.000 ARS).
+                                  PROMO: Aplicamos un descuento directo de $39.990 ARS (reintegro de costo inicial) sobre los 100 USD al cambio de hoy.
                                 </p>
                               </div>
                             </div>
@@ -1500,6 +1808,14 @@ export default function Wizard() {
                               </div>
                             </div>
                           </label>
+
+                          {/* RESUMEN EN VIVO DEL TOTAL DE SUSCRIPCIÓN */}
+                          <VipTotalSummaryBanner
+                            pricing={selectedVipPricing}
+                            dolarFecha={dolarFecha}
+                            eyebrowPrefix="Total en vivo"
+                            totalLabel="Total hoy:"
+                          />
                         </div>
                       </motion.div>
                     )}
@@ -2406,12 +2722,32 @@ export default function Wizard() {
                         <strong className="text-slate-900 text-sm">
                           {data.managementPlan === 'vip' ? 'Mantenimiento VIP Llave en Mano' : 'Plan Autogestionable ($0)'}
                         </strong>
-                        {data.managementPlan === 'vip' && (
-                          <span className="font-semibold text-amber-700">
-                            Ciclo {data.billingCycle.toUpperCase()} {data.billingCycle === 'anual' && '· Reintegro 100% de $40.000'}
-                          </span>
+                        {data.managementPlan === 'vip' ? (
+                          <>
+                            <div className="flex flex-wrap items-center gap-1.5 font-semibold text-amber-700">
+                              <span>
+                                Ciclo {data.billingCycle.toUpperCase()} ({selectedVipPricing.usd} USD)
+                              </span>
+                              {selectedVipPricing.discountARS > 0 && (
+                                <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-200">
+                                  -$39.990 ARS
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex flex-wrap items-baseline gap-1.5 pt-0.5">
+                              {selectedVipPricing.discountARS > 0 && (
+                                <span className="text-slate-400 line-through text-[11px] font-semibold">
+                                  ${selectedVipPricing.grossFormatted} ARS
+                                </span>
+                              )}
+                              <span className="text-slate-950 font-black text-xs sm:text-sm">
+                                ${selectedVipPricing.finalFormatted} ARS hoy
+                              </span>
+                            </div>
+                          </>
+                        ) : (
+                          <span className="text-emerald-700 font-bold text-xs">$0 ARS · Sin suscripción mensual</span>
                         )}
-                        <span className="text-slate-400 text-[11px]">Soporte y configuración incluida</span>
                       </div>
                     </div>
 
@@ -2555,6 +2891,28 @@ export default function Wizard() {
                     </div>
                   </div>
 
+                  {/* RESUMEN DEL MONTO FINAL CALCULADO AL CAMBIO OFICIAL DE HOY */}
+                  {data.managementPlan === 'vip' ? (
+                    <VipTotalSummaryBanner
+                      pricing={selectedVipPricing}
+                      dolarFecha={dolarFecha}
+                      eyebrowPrefix="Liquidación Final"
+                      totalLabel="Total a abonar hoy:"
+                    />
+                  ) : (
+                    <div className="rounded-2xl sm:rounded-3xl bg-emerald-50/70 border border-emerald-200/90 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800">
+                          Plan Autogestionable Seleccionado
+                        </span>
+                        <span className="text-xs text-emerald-900/80">
+                          Sin suscripción mensual. Al confirmar, pasamos directo a producción.
+                        </span>
+                      </div>
+                      <span className="text-lg sm:text-xl font-black text-emerald-900">Total hoy: $0 ARS</span>
+                    </div>
+                  )}
+
                   {/* BOTÓN ENVIAR A PRODUCCIÓN */}
                   <div className="flex flex-col items-center justify-center gap-2.5 pt-1">
                     <AnimatePresence mode="wait">
@@ -2589,7 +2947,7 @@ export default function Wizard() {
                           ) : (
                             <>
                               <ShieldCheck size={18} className="text-white" />
-                              <span>Confirmar y Enviar Menú a Producción 🚀</span>
+                              <span>Confirmar y Enviar Menú a Producción</span>
                             </>
                           )}
                         </motion.button>
